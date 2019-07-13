@@ -10,7 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class AbstractEBook implements EBook{
+public abstract class AbstractEBook implements EBook {
+
+    public AbstractEBook(Path path) throws IOException {
+        this.path = path;
+        if (!Files.exists(this.path)) throw new IOException("File not found "+path.toString());
+    }
 
     private String toFileName(String p) {
         return p.replaceAll("[\\\\<>:|/?*\"]","").stripLeading().stripTrailing();
@@ -47,7 +52,7 @@ public abstract class AbstractEBook implements EBook{
         }
         options = Arrays.stream(options).filter(option -> !EbookCopyOption.class.isAssignableFrom(option.getClass())).collect(Collectors.toList()).toArray(new CopyOption[0]);
         logger.debug("copy ebook "+getPath().toString()+" to "+targetDirectory);
-        Optional<String> originalFileName = Optional.of(getPath().getFileName().toString()).map(t->(t.contains(".")&&t.lastIndexOf(".")!=0)?t.substring(0,t.lastIndexOf(".")-1):t);
+        Optional<String> originalFileName = Optional.of(getPath().getFileName().toString()).map(t->(t.contains(".")&&t.lastIndexOf(".")!=0)?t.substring(0,t.lastIndexOf(".")):t);
 
         // create expected directories
         Files.createDirectories(targetDirectory);
@@ -57,6 +62,18 @@ public abstract class AbstractEBook implements EBook{
         return EBookFactory.createEBook(targetDirectory);
     }
 
+    @Override
+    public String getFileExtension() {
+        Optional<String> extension = Optional.of(getPath().getFileName().toString()).filter(f -> f.lastIndexOf(".") >= 0).map(f -> f.substring(f.lastIndexOf(".")));
+        return extension.orElse("");
+    }
 
+
+    @Override
+    public Path getPath() {
+        return path;
+    }
+
+    private Path path;
     private final static Logger logger = LogManager.getLogger(AbstractEBook.class);
 }

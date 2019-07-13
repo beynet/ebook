@@ -1,6 +1,7 @@
 package org.beynet.ebook;
 
 import org.beynet.ebook.epub.EPub;
+import org.beynet.ebook.unsupported.UnsupportedEBook;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,7 +12,7 @@ public class EBookFactory {
             return new EPub(ebook);
         }
         else {
-            throw new IOException("unsupported type");
+            return new UnsupportedEBook(ebook);
         }
     }
 }

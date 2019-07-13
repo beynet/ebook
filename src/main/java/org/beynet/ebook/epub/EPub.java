@@ -20,14 +20,10 @@ import java.util.Optional;
 public class EPub extends AbstractEBook implements EBook {
 
     public EPub(Path epub) throws IOException {
-        this.path = epub;
+        super(epub);
         readProperties();
     }
 
-    @Override
-    public Path getPath() {
-        return path;
-    }
 
     @Override
     public String getFileExtension() {
@@ -102,7 +98,7 @@ public class EPub extends AbstractEBook implements EBook {
 
     private void readProperties() throws IOException {
         Map<String,?> env = new HashMap<>();
-        URI uri = URI.create("jar:"+path.toUri().toString());
+        URI uri = URI.create("jar:"+getPath().toUri().toString());
         try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
             checkMimetypeFile(fs);
             readContainer(fs);
@@ -119,8 +115,6 @@ public class EPub extends AbstractEBook implements EBook {
         }
     }
 
-
-    private final Path       path;
     private Optional<String> author;
     private Optional<String> title;
     private List<String>     subjects;
