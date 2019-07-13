@@ -12,6 +12,7 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EBookFactory;
+import org.beynet.ebook.EBookUtils;
 import org.beynet.ebook.EbookCopyOption;
 import org.beynet.ebook.epub.EPub;
 import org.junit.Test;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
 
 /**
  * Unit test for simple EBook.
@@ -37,6 +39,24 @@ public class AppTest {
         assertThat(epub.getAuthor().get(),is("Stephen Baxter"));
         assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));
         assertThat(epub.getSubjects().get(0),is("Science-Fiction"));
+    }
+
+    @Test
+    public void creatorWithNoAttribut() throws IOException {
+        EPub epub = new EPub(Paths.get("./src/test/resources/A Fire Upon The Deep.epub"));
+        assertThat(epub.getTitle().get(),is("A Fire Upon The Deep"));
+        assertThat(epub.getAuthor().get(),is("Vinge, Vernor"));
+        assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));
+        assertThat(epub.getSubjects().get(0),is(""));
+    }
+
+    @Test
+    public void emptySubject() throws IOException {
+        EPub epub = new EPub(Paths.get("./src/test/resources/Hunger Games.epub"));
+        assertThat(epub.getTitle().get(),is("Hunger Games "));
+        assertThat(epub.getAuthor().get(),is("Collins Suzanne"));
+        assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));
+        assertThat(epub.getSubjects().get(0),is(""));
     }
 
 
@@ -68,39 +88,18 @@ public class AppTest {
     }
 
     @Test
-    public void result() throws IOException {
+    public void sortBooks() throws IOException {
         Path test = Files.createTempDirectory("test");
-        Files.walkFileTree(Paths.get("G:\\Mon Drive\\EBooks"), new FileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                logger.debug("visit file "+file.toString());
-                if (file.getFileName().toString().endsWith(".epub")) {
-                    try {
-                        EBookFactory.createEBook(file).copyTo(test,EbookCopyOption.AddSubjectToPath,EbookCopyOption.AddAuthorToPath);
-                    }catch(Exception e) {
-                        logger.error("unable to read ebook "+file.toString(),e);
-                    }
-                }
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
-        });
+        EBookUtils.sort(Paths.get("G:\\Mon Drive\\EBooks"),test,EbookCopyOption.AddSubjectToPath,EbookCopyOption.AddAuthorToPath,StandardCopyOption.REPLACE_EXISTING);
     }
 
+
+    @Test
+    public void t() {
+        String file="t.jpg";
+        Optional<String> originalFileName = Optional.of(file).map(t->(t.contains(".")&&t.lastIndexOf(".")!=0)?t.substring(0,t.lastIndexOf(".")-1):t);
+        System.out.println(originalFileName);
+    }
 
 
     /**
@@ -108,7 +107,7 @@ public class AppTest {
      */
     @Test
     public void creatorWithRoleAut() throws IOException {
-        EPub epub = new EPub(Paths.get("C:\\Users\\beyne\\IdeaProjects\\ebook\\src\\test\\resources\\Pyramides - Romain BENASSAYA.epub"));
+        EPub epub = new EPub(Paths.get("./src/test/resources/Pyramides - Romain BENASSAYA.epub"));
         assertThat(epub.getTitle().get(),is("Pyramides"));
         assertThat(epub.getAuthor().get(),is("Romain Benassaya"));
         assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));

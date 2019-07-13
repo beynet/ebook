@@ -2,6 +2,7 @@ package org.beynet.ebook;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -29,17 +30,20 @@ public interface EBook {
 
     /**
      * copy current ebook to target directory
-     * @param targetDirectorty
+     * @param targetDirectory
      * @param options
      * @return
      * @throws IOException
+     * @throws InvalidPathException if an unexpected error happens during path formating
      */
-    EBook copyTo(Path targetDirectorty, CopyOption... options) throws IOException;
+    EBook copyTo(Path targetDirectory, CopyOption... options) throws IOException, InvalidPathException;
 
     /**
      * @return to current ebook file
      */
     Path getPath();
+
+    String getFileExtension();
 
     String UNDEFINED_AUTHOR="undefined";
     String UNDEFINED_TITLE="undefined title";

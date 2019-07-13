@@ -29,6 +29,11 @@ public class EPub extends AbstractEBook implements EBook {
         return path;
     }
 
+    @Override
+    public String getFileExtension() {
+        return ".epub";
+    }
+
     /**
      * check the mimetype file expected content
      * @param fs
@@ -38,6 +43,8 @@ public class EPub extends AbstractEBook implements EBook {
         Path mimetype = fs.getPath("mimetype");
         if (!Files.exists(mimetype)) throw new IOException("execpected mimetype file not found");
         String mimetypeContent = new String(Files.readAllBytes(mimetype));
+
+        mimetypeContent=mimetypeContent.stripTrailing().stripLeading();
         if (!"application/epub+zip".equals(mimetypeContent)) {
             throw new IOException("mimetype file contains an unexpected value " + mimetypeContent);
         }
@@ -72,7 +79,9 @@ public class EPub extends AbstractEBook implements EBook {
         }
         title=Optional.ofNullable(packageDoc.getMetadata().getTitle());
         subjects = packageDoc.getMetadata().getSubjects();
-        packageDoc.getMainCreator().ifPresentOrElse(a -> author = Optional.of(a.getName()),()->author = Optional.empty());
+        packageDoc.getMainCreator().ifPresentOrElse(
+                a -> author = Optional.of(a.getName()),
+                ()->author = packageDoc.getMetadata().getCreators().stream().findFirst().map(c->c.getName()));
     }
 
 
