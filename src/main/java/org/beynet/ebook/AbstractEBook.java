@@ -51,7 +51,7 @@ public abstract class AbstractEBook implements EBook {
             }
         }
         options = Arrays.stream(options).filter(option -> !EbookCopyOption.class.isAssignableFrom(option.getClass())).collect(Collectors.toList()).toArray(new CopyOption[0]);
-        logger.debug("copy ebook "+getPath().toString()+" to "+targetDirectory);
+        logger.info("copy ebook "+getPath().toString()+" to "+targetDirectory);
         Optional<String> originalFileName = Optional.of(getPath().getFileName().toString()).map(t->(t.contains(".")&&t.lastIndexOf(".")!=0)?t.substring(0,t.lastIndexOf(".")):t);
 
         // create expected directories
