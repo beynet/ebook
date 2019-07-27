@@ -29,6 +29,16 @@ public interface EBook {
     List<String> getSubjects();
 
     /**
+     * update current ebook subjects
+     */
+    void updateSubjects() throws IOException;
+
+    /**
+     * @return true if current ebook is protected, just like epub with DRM
+     */
+    boolean isProtected();
+
+    /**
      * copy current ebook to target directory
      * @param targetDirectory
      * @param options
@@ -36,7 +46,14 @@ public interface EBook {
      * @throws IOException
      * @throws InvalidPathException if an unexpected error happens during path formating
      */
-    EBook copyTo(Path targetDirectory, CopyOption... options) throws IOException, InvalidPathException;
+    EBook copyToDirectory(Path targetDirectory, CopyOption... options) throws IOException, InvalidPathException;
+
+    /**
+     *
+     * @param target
+     * @return
+     */
+    EBook copy(Path target,CopyOption ...options) throws IOException;
 
     /**
      * @return to current ebook file

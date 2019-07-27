@@ -22,7 +22,7 @@ public abstract class AbstractEBook implements EBook {
     }
 
     @Override
-    public EBook copyTo(Path targetDirectory, CopyOption... options) throws IOException,InvalidPathException {
+    public EBook copyToDirectory(Path targetDirectory, CopyOption... options) throws IOException,InvalidPathException {
         if (targetDirectory==null) throw new IllegalArgumentException("targetDirectory is mandatory");
         if (!Files.exists(targetDirectory)) throw new IOException("target directory "+targetDirectory.toString()+" does not exist");
         if (!Files.isDirectory(targetDirectory)) throw new IOException(targetDirectory.toString()+" is not a directory");
@@ -63,11 +63,23 @@ public abstract class AbstractEBook implements EBook {
     }
 
     @Override
+    public EBook copy(Path target,CopyOption ...options) throws IOException {
+        logger.info("copy book "+getPath().toString()+" to "+target.toString());
+        Files.copy(getPath(),target,options);
+        return EBookFactory.createEBook(target);
+    }
+
+    @Override
     public String getFileExtension() {
         Optional<String> extension = Optional.of(getPath().getFileName().toString()).filter(f -> f.lastIndexOf(".") >= 0).map(f -> f.substring(f.lastIndexOf(".")));
         return extension.orElse("");
     }
 
+
+    @Override
+    public boolean isProtected() {
+        return false;
+    }
 
     @Override
     public Path getPath() {

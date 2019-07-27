@@ -2,6 +2,7 @@ package org.beynet.ebook.epub.opf;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
+import java.util.Objects;
 
 public class CreatorOrContributor {
 
@@ -27,6 +28,22 @@ public class CreatorOrContributor {
     }
     public void setRole(String role) {
         this.role = role;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CreatorOrContributor that = (CreatorOrContributor) o;
+        return Objects.equals(getRole(), that.getRole()) &&
+                Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getRole(), getName(), getId());
     }
 
     private String role;

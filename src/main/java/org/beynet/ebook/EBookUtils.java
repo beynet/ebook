@@ -35,8 +35,9 @@ public class EBookUtils {
                     logger.info("unable to sort file "+file.toString());
                     return FileVisitResult.CONTINUE;
                 }
+                if (eBook.isProtected()) logger.warn("ebook "+eBook.getPath().toString()+" is protected");
                 try {
-                    eBook.copyTo(target,options);
+                    eBook.copyToDirectory(target,options);
                 }catch(Exception e) {
                     logger.error("unable to copy ebook "+file.toString(),e);
                 }

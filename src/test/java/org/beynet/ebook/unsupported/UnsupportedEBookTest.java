@@ -3,7 +3,6 @@ package org.beynet.ebook.unsupported;
 import org.beynet.AbstractTests;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EbookCopyOption;
-import org.beynet.ebook.epub.EPub;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class UnsupportedEBookTest extends AbstractTests {
         EBook result = null;
         try {
             UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/test.pdf"));
-            result = unsupportedEBook.copyTo(test, EbookCopyOption.AddSubjectToPath, EbookCopyOption.AddAuthorToPath);
+            result = unsupportedEBook.copyToDirectory(test, EbookCopyOption.AddSubjectToPath, EbookCopyOption.AddAuthorToPath);
             assertThat(result.getPath(),is(expected));
             assertThat(Files.exists(result.getPath()),is(true));
         }

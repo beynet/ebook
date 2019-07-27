@@ -10,12 +10,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class EPub extends AbstractEBook implements EBook {
 
@@ -28,6 +26,19 @@ public class EPub extends AbstractEBook implements EBook {
     @Override
     public String getFileExtension() {
         return ".epub";
+    }
+
+
+
+    private void checkIsWithDRM(FileSystem fs) throws IOException {
+        Path encryptionFile = fs.getPath("META-INF","encryption.xml");
+
+        if (Files.exists(encryptionFile)) {
+            isProtected =true;
+        }
+        else  {
+            isProtected =false;
+        }
     }
 
     /**
@@ -67,17 +78,20 @@ public class EPub extends AbstractEBook implements EBook {
             throw new IOException("no root file found in container");
         }
         RootFile rootFile = container.getRootFiles().getRootFiles().get(0);
-        final Package packageDoc;
+        packageDocPath = rootFile.getFullPath();
         try {
-            packageDoc= (Package) unmarshaller.unmarshal(Files.newInputStream(fs.getPath(rootFile.getFullPath())));
+            packageDoc= (Package) unmarshaller.unmarshal(Files.newInputStream(fs.getPath(packageDocPath)));
         } catch (JAXBException e) {
             throw new IOException("unable to read root package file ",e);
         }
         title=Optional.ofNullable(packageDoc.getMetadata().getTitle());
-        subjects = packageDoc.getMetadata().getSubjects();
+        subjects = new ArrayList<>();
+        subjects.addAll(packageDoc.getMetadata().getSubjects());
         packageDoc.getMainCreator().ifPresentOrElse(
                 a -> author = Optional.of(a.getName()),
                 ()->author = packageDoc.getMetadata().getCreators().stream().findFirst().map(c->c.getName()));
+
+
     }
 
 
@@ -96,15 +110,38 @@ public class EPub extends AbstractEBook implements EBook {
         return subjects;
     }
 
+    @Override
+    public void updateSubjects() throws IOException {
+        packageDoc.getMetadata().getSubjects().clear();
+        packageDoc.getMetadata().getSubjects().addAll(getSubjects());
+        Map<String,?> env = new HashMap<>();
+        URI uri = URI.create("jar:"+getPath().toUri().toString());
+        try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
+            Path path = fs.getPath(packageDocPath);
+            try(OutputStream os = Files.newOutputStream(path,StandardOpenOption.TRUNCATE_EXISTING,StandardOpenOption.CREATE)) {
+                try {
+                    context.createMarshaller().marshal(packageDoc, os);
+                } catch (JAXBException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     private void readProperties() throws IOException {
         Map<String,?> env = new HashMap<>();
         URI uri = URI.create("jar:"+getPath().toUri().toString());
         try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
             checkMimetypeFile(fs);
+            checkIsWithDRM(fs);
             readContainer(fs);
         }
     }
 
+    @Override
+    public boolean isProtected() {
+        return isProtected;
+    }
 
     private  static JAXBContext context ;
     static {
@@ -115,7 +152,16 @@ public class EPub extends AbstractEBook implements EBook {
         }
     }
 
+    protected Package getPackageDoc() {
+        return this.packageDoc;
+    }
+
+    private boolean isProtected;
     private Optional<String> author;
     private Optional<String> title;
     private List<String>     subjects;
+    private Package          packageDoc;
+    private String           packageDocPath;
+
+
 }

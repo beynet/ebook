@@ -30,5 +30,10 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
         return subjects;
     }
 
+    @Override
+    public void updateSubjects() {
+        throw new UnsupportedOperationException("unable to update subjects");
+    }
+
     private List<String> subjects = new ArrayList<>();
 }

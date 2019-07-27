@@ -42,7 +42,7 @@ public class AppTest extends AbstractTests{
     @Test
     public void sortBooks() throws IOException {
         Path test = Files.createTempDirectory("test");
-        EBookUtils.sort(Paths.get("C:\\Users\\beyne\\AppData\\Local\\Temp\\sorted"),test,EbookCopyOption.AddSubjectToPath,EbookCopyOption.AddAuthorToPath,StandardCopyOption.REPLACE_EXISTING);
+        EBookUtils.sort(Paths.get("G:\\Mon Drive\\EBooks_Old"),test,EbookCopyOption.AddSubjectToPath,EbookCopyOption.AddAuthorToPath,StandardCopyOption.REPLACE_EXISTING);
     }
 
 
