@@ -15,6 +15,7 @@ import org.beynet.ebook.EBookFactory;
 import org.beynet.ebook.EBookUtils;
 import org.beynet.ebook.EbookCopyOption;
 import org.beynet.ebook.epub.EPub;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -40,8 +41,9 @@ public class AppTest extends AbstractTests{
     }
 
     @Test
+    @Ignore
     public void sortBooks() throws IOException {
-        Path test = Files.createTempDirectory("test");
+        Path test = Files.createTempDirectory("sorttest");
         EBookUtils.sort(Paths.get("G:\\Mon Drive\\EBooks_Old"),test,EbookCopyOption.AddSubjectToPath,EbookCopyOption.AddAuthorToPath,StandardCopyOption.REPLACE_EXISTING);
     }
 

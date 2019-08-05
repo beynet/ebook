@@ -21,6 +21,9 @@ public class Package {
         return metadata==null?Optional.empty():metadata.getMainCreator();
     }
 
+    public void replaceMainCreator(String newName) {
+        if (metadata!=null) metadata.replaceMainCreator(newName);
+    }
 
     @XmlElement(name="manifest")
     public Manifest getManifest() {

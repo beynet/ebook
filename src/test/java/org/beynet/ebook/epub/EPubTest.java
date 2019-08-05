@@ -3,8 +3,8 @@ package org.beynet.ebook.epub;
 import org.beynet.AbstractTests;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EbookCopyOption;
-import org.beynet.ebook.epub.opf.*;
 import org.beynet.ebook.epub.opf.Package;
+import org.beynet.ebook.epub.opf.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -66,6 +65,49 @@ public class EPubTest extends AbstractTests {
             Files.deleteIfExists(test);
         }
     }
+
+    @Test
+    public void changeAuthorWithRole() throws IOException {
+        EPub epub = new EPub(Paths.get("./src/test/resources/books/Hunger Games.epub"));
+        assertThat(epub.isProtected(),is(false));
+        assertThat(epub.getTitle().get(),is("Hunger Games"));
+        assertThat(epub.getAuthor().get(),is("Collins Suzanne"));
+        basicTestOnPackage(epub.getPackageDoc());
+
+
+        Path test = Files.createTempFile("test", ".epub");
+
+        try {
+            EBook result = epub.copy(test, StandardCopyOption.REPLACE_EXISTING);
+            result.changeAuthor("Suzanne Collins");
+
+            result = new EPub(test);
+            assertThat(result.getAuthor().get(),is("Suzanne Collins"));
+        } finally {
+            Files.deleteIfExists(test);
+        }
+    }
+
+    @Test
+    public void changeAuthorWithNoRole() throws IOException {
+        EPub epub = new EPub(Paths.get("./src/test/resources/books/A Fire Upon The Deep.epub"));
+        assertThat(epub.getAuthor().get(),is("Vinge, Vernor"));
+        basicTestOnPackage(epub.getPackageDoc());
+
+
+        Path test = Files.createTempFile("test", ".epub");
+
+        try {
+            EBook result = epub.copy(test, StandardCopyOption.REPLACE_EXISTING);
+            result.changeAuthor("Vernors Vinge");
+
+            result = new EPub(test);
+            assertThat(result.getAuthor().get(),is("Vernors Vinge"));
+        } finally {
+            Files.deleteIfExists(test);
+        }
+    }
+
 
     @Test
     public void isWithDRM() throws IOException {
@@ -151,6 +193,15 @@ public class EPubTest extends AbstractTests {
         identifier.setId("BookID");
         identifier.setValue("urn:uuid:446cd1b2-7a79-48a0-b6cf-607fc618c09e");
         assertThat(metadata.getIdentifier(),is(identifier));
+
+        Reference ref = new Reference();
+        ref.setHref("Text/couverture.xhtml");
+        ref.setTitle("Cover");
+        ref.setType("cover");
+        Guide guide = new Guide();
+        guide.getReferences().add(ref);
+
+        assertThat(epub.getPackageDoc().getGuide(),is(guide));
     }
 
     @Test

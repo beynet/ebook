@@ -11,6 +11,8 @@ import java.util.Optional;
 @XmlType(name = "metadata",propOrder = {"title","creators","contributors","subjects","publishers", "dates","identifier","language","rights","metas"})
 public class Metadata {
 
+    public static final String AUT = "aut";
+
     @XmlElement(name = "title",namespace = "http://purl.org/dc/elements/1.1/")
     public String getTitle() {
         return title;
@@ -36,8 +38,22 @@ public class Metadata {
 
     @XmlTransient
     public Optional<CreatorOrContributor> getMainCreator(){
-        return creators.stream().filter(c->"aut".equals(c.getRole())|| ( c.getId()!=null && c.getId().startsWith("id")) ).findFirst();
+        return creators.stream().filter(c-> AUT.equals(c.getRole())|| ( c.getId()!=null && c.getId().startsWith("id")) ).findFirst().or(()->creators.stream().findFirst());
     }
+    public void replaceMainCreator(String newName) {
+        Optional<CreatorOrContributor> mainCreator = getMainCreator();
+        mainCreator.ifPresentOrElse(c->{
+            c.setName(newName);
+        },
+        ()->{
+            CreatorOrContributor newCreator = new CreatorOrContributor();
+            newCreator.setName(newName);
+            newCreator.setRole(AUT);
+            creators.add(newCreator);
+        }
+                );
+    }
+
 
     @XmlElement(name="publisher",namespace = "http://purl.org/dc/elements/1.1/")
     public List<String> getPublishers() {

@@ -33,6 +33,14 @@ public interface EBook {
      */
     void updateSubjects() throws IOException;
 
+
+    /**
+     * change current ebook author
+     * @param newName
+     * @throws IOException
+     */
+    void changeAuthor(String newName) throws IOException;
+
     /**
      * @return true if current ebook is protected, just like epub with DRM
      */

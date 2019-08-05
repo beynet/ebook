@@ -30,7 +30,7 @@ public class UnsupportedEBookTest extends AbstractTests {
 
     @Test
     public void subjects() throws IOException {
-        UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/bookss/test.pdf"));
+        UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/test.pdf"));
         assertThat(unsupportedEBook.getSubjects(),is(new ArrayList()));
     }
 

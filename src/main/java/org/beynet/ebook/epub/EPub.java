@@ -110,10 +110,12 @@ public class EPub extends AbstractEBook implements EBook {
         return subjects;
     }
 
-    @Override
-    public void updateSubjects() throws IOException {
-        packageDoc.getMetadata().getSubjects().clear();
-        packageDoc.getMetadata().getSubjects().addAll(getSubjects());
+
+    /**
+     * save back package file in epub
+     * @throws IOException
+     */
+    private void savePackageDocument() throws IOException {
         Map<String,?> env = new HashMap<>();
         URI uri = URI.create("jar:"+getPath().toUri().toString());
         try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
@@ -126,6 +128,19 @@ public class EPub extends AbstractEBook implements EBook {
                 }
             }
         }
+    }
+
+    @Override
+    public void updateSubjects() throws IOException {
+        packageDoc.getMetadata().getSubjects().clear();
+        packageDoc.getMetadata().getSubjects().addAll(getSubjects());
+        savePackageDocument();
+    }
+
+    @Override
+    public void changeAuthor(String newName) throws IOException {
+        packageDoc.replaceMainCreator(newName);
+        savePackageDocument();
     }
 
     private void readProperties() throws IOException {

@@ -58,6 +58,7 @@ public abstract class AbstractEBook implements EBook {
         Files.createDirectories(targetDirectory);
         // use book title as file name or original filename
         targetDirectory=targetDirectory.resolve(toFileName(getTitle().map(t->"".equals(t)?null:t).orElse(originalFileName.get()).concat(getFileExtension())));
+        if (Files.exists(targetDirectory)) logger.warn("!!!!!!!!!!!!!!!! book "+targetDirectory+" orig ="+getPath());
         Files.copy(getPath(),targetDirectory,options);
         return EBookFactory.createEBook(targetDirectory);
     }
