@@ -70,6 +70,11 @@ public interface EBook {
 
     String getFileExtension();
 
+    /**
+     * @return the next page to be read
+     */
+    public Optional<String> getNextPage() ;
+
     String UNDEFINED_AUTHOR="undefined";
     String UNDEFINED_TITLE="undefined title";
     String UNDEFINED_SUBJECT="undefined subject";

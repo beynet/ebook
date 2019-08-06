@@ -1,9 +1,10 @@
 package org.beynet.ebook.epub.opf;
 
-import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CreatorOrContributorTest {
 
@@ -21,7 +22,7 @@ public class CreatorOrContributorTest {
         c2.setRole("role");
         c2.setId("id");
 
-        assertThat(c1,is(c2));
+        assertEquals(c1,c2);
 
     }
 
@@ -40,7 +41,7 @@ public class CreatorOrContributorTest {
         c2.setRole("role");
         c2.setId("id");
 
-        assertThat(c1.equals(c2),is(Boolean.FALSE));
+        assertFalse(c1.equals(c2));
 
     }
 
@@ -59,7 +60,7 @@ public class CreatorOrContributorTest {
         c2.setRole("role2");
         c2.setId("id");
 
-        assertThat(c1.equals(c2),is(Boolean.FALSE));
+        assertFalse(c1.equals(c2));
 
     }
 
@@ -77,7 +78,7 @@ public class CreatorOrContributorTest {
         c2.setRole("role");
         c2.setId("id3");
 
-        assertThat(c1.equals(c2),is(Boolean.FALSE));
+        assertFalse(c1.equals(c2));
 
     }
 

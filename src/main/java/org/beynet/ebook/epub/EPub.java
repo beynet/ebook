@@ -1,9 +1,13 @@
 package org.beynet.ebook.epub;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.beynet.ebook.AbstractEBook;
 import org.beynet.ebook.EBook;
+import org.beynet.ebook.EBookUtils;
 import org.beynet.ebook.epub.oasis.container.Container;
 import org.beynet.ebook.epub.oasis.container.RootFile;
+import org.beynet.ebook.epub.opf.Item;
 import org.beynet.ebook.epub.opf.Package;
 
 import javax.xml.bind.JAXBContext;
@@ -20,6 +24,7 @@ public class EPub extends AbstractEBook implements EBook {
     public EPub(Path epub) throws IOException {
         super(epub);
         readProperties();
+        currentItem = Optional.empty() ;
     }
 
 
@@ -111,14 +116,18 @@ public class EPub extends AbstractEBook implements EBook {
     }
 
 
+    private FileSystem getFileSystem() throws IOException {
+        Map<String,?> env = new HashMap<>();
+        URI uri = URI.create("jar:"+getPath().toUri().toString());
+        return FileSystems.newFileSystem(uri, env);
+    }
+
     /**
      * save back package file in epub
      * @throws IOException
      */
     private void savePackageDocument() throws IOException {
-        Map<String,?> env = new HashMap<>();
-        URI uri = URI.create("jar:"+getPath().toUri().toString());
-        try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
+        try (FileSystem fs = getFileSystem()) {
             Path path = fs.getPath(packageDocPath);
             try(OutputStream os = Files.newOutputStream(path,StandardOpenOption.TRUNCATE_EXISTING,StandardOpenOption.CREATE)) {
                 try {
@@ -144,9 +153,7 @@ public class EPub extends AbstractEBook implements EBook {
     }
 
     private void readProperties() throws IOException {
-        Map<String,?> env = new HashMap<>();
-        URI uri = URI.create("jar:"+getPath().toUri().toString());
-        try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
+        try (FileSystem fs = getFileSystem()) {
             checkMimetypeFile(fs);
             checkIsWithDRM(fs);
             readContainer(fs);
@@ -156,6 +163,57 @@ public class EPub extends AbstractEBook implements EBook {
     @Override
     public boolean isProtected() {
         return isProtected;
+    }
+
+    @Override
+    public Optional<String> getNextPage() {
+
+        Optional<String> result ;
+        List<Item> items = packageDoc.getManifest().getItems();
+
+        currentItem.ifPresentOrElse(
+                // search the next page
+                curr-> {
+                    boolean currentPageReached = false ;
+                    for (Item item : items) {
+                        if (curr.equals(item)) {
+                            currentPageReached = true ;
+                            currentItem = Optional.empty();
+                            continue;
+                        }
+                        if (item!=null && currentPageReached==true && XHTML.equals(item.getMediaType())) {
+                            currentItem = Optional.of(item);
+                            break;
+                        }
+                    }
+                },
+                // go to first page
+                ()->{
+                    if (items.size()>0) {
+                        for (Item item : items) {
+                            if (XHTML.equals(item.getMediaType())) {
+                                currentItem = Optional.ofNullable(item);
+                                break;
+                            }
+                        }
+                    }
+                }
+        );
+
+
+        result = currentItem.map(item -> {
+            try (FileSystem fs = getFileSystem()) {
+                Path packageDirectory = fs.getPath(packageDocPath).getParent();
+                Path itemPath = packageDirectory.resolve(item.getHref());
+                byte[] bytes = Files.readAllBytes(itemPath);
+                return new String(bytes, "UTF-8");
+            } catch (IOException e) {
+                logger.error("");
+                return "";
+            }
+        });
+
+        return result;
     }
 
     private  static JAXBContext context ;
@@ -177,6 +235,9 @@ public class EPub extends AbstractEBook implements EBook {
     private List<String>     subjects;
     private Package          packageDoc;
     private String           packageDocPath;
+    private Optional<Item>   currentItem ;
 
+    private final static String XHTML="application/xhtml+xml";
+    private final static Logger logger = LogManager.getLogger(EPub.class);
 
 }

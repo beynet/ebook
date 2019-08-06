@@ -2,10 +2,11 @@ package org.beynet.ebook.epub;
 
 import org.beynet.AbstractTests;
 import org.beynet.ebook.EBook;
+import org.beynet.ebook.EBookFactory;
 import org.beynet.ebook.EbookCopyOption;
 import org.beynet.ebook.epub.opf.Package;
 import org.beynet.ebook.epub.opf.*;
-import org.junit.Test;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,38 +14,40 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class EPubTest extends AbstractTests {
 
     @Test
     public void creatorWithIDStartingWithID() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/univers multiples I _ Temps, Les - Stephen Baxter.epub"));
-        assertThat(epub.getTitle().get(),is("Les univers multiples I : Temps"));
-        assertThat(epub.getAuthor().get(),is("Stephen Baxter"));
-        assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));
-        assertThat(epub.getSubjects().get(0),is("Science-Fiction"));
+        assertEquals("Les univers multiples I : Temps",epub.getTitle().get());
+        assertEquals("Stephen Baxter",epub.getAuthor().get());
+        assertEquals(Integer.valueOf(1),epub.getSubjects().size());
+        assertEquals("Science-Fiction",epub.getSubjects().get(0));
     }
 
     @Test
     public void creatorWithNoAttribut() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/A Fire Upon The Deep.epub"));
-        assertThat(epub.getTitle().get(),is("A Fire Upon The Deep"));
-        assertThat(epub.getAuthor().get(),is("Vinge, Vernor"));
-        assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));
-        assertThat(epub.getSubjects().get(0),is(""));
+        assertEquals("A Fire Upon The Deep",epub.getTitle().get());
+        assertEquals("Vinge, Vernor",epub.getAuthor().get());
+        assertEquals(Integer.valueOf(1),epub.getSubjects().size());
+        assertEquals("",epub.getSubjects().get(0));
     }
 
     @Test
     public void changeSubjects() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/Hunger Games.epub"));
-        assertThat(epub.isProtected(),is(false));
-        assertThat(epub.getTitle().get(),is("Hunger Games"));
-        assertThat(epub.getAuthor().get(),is("Collins Suzanne"));
-        assertThat(epub.getSubjects().size(),is(Integer.valueOf(0)));
+        assertFalse(epub.isProtected());
+        assertEquals("Hunger Games",epub.getTitle().get());
+        assertEquals("Collins Suzanne",epub.getAuthor().get());
+        assertEquals(Integer.valueOf(0),epub.getSubjects().size());
         basicTestOnPackage(epub.getPackageDoc());
 
 
@@ -52,15 +55,15 @@ public class EPubTest extends AbstractTests {
 
         try {
             EBook result = epub.copy(test, StandardCopyOption.REPLACE_EXISTING);
-            assertThat(result.getSubjects().size(), is(Integer.valueOf(0)));
+            assertEquals(Integer.valueOf(0),result.getSubjects().size());
             result.getSubjects().add("Science-Fiction");
             result.getSubjects().add("truc1");
             result.updateSubjects();
 
             result = new EPub(test);
-            assertThat(result.getSubjects().size(), is(Integer.valueOf(2)));
-            assertThat(result.getSubjects().get(0), is("Science-Fiction"));
-            assertThat(result.getSubjects().get(1), is("truc1"));
+            assertEquals(Integer.valueOf(2),result.getSubjects().size());
+            assertEquals("Science-Fiction",result.getSubjects().get(0));
+            assertEquals("truc1",result.getSubjects().get(1));
         } finally {
             Files.deleteIfExists(test);
         }
@@ -69,9 +72,9 @@ public class EPubTest extends AbstractTests {
     @Test
     public void changeAuthorWithRole() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/Hunger Games.epub"));
-        assertThat(epub.isProtected(),is(false));
-        assertThat(epub.getTitle().get(),is("Hunger Games"));
-        assertThat(epub.getAuthor().get(),is("Collins Suzanne"));
+        assertFalse(epub.isProtected());
+        assertEquals("Hunger Games",epub.getTitle().get());
+        assertEquals("Collins Suzanne",epub.getAuthor().get());
         basicTestOnPackage(epub.getPackageDoc());
 
 
@@ -82,7 +85,7 @@ public class EPubTest extends AbstractTests {
             result.changeAuthor("Suzanne Collins");
 
             result = new EPub(test);
-            assertThat(result.getAuthor().get(),is("Suzanne Collins"));
+            assertEquals("Suzanne Collins",result.getAuthor().get());
         } finally {
             Files.deleteIfExists(test);
         }
@@ -91,7 +94,7 @@ public class EPubTest extends AbstractTests {
     @Test
     public void changeAuthorWithNoRole() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/A Fire Upon The Deep.epub"));
-        assertThat(epub.getAuthor().get(),is("Vinge, Vernor"));
+        assertEquals("Vinge, Vernor",epub.getAuthor().get());
         basicTestOnPackage(epub.getPackageDoc());
 
 
@@ -102,7 +105,7 @@ public class EPubTest extends AbstractTests {
             result.changeAuthor("Vernors Vinge");
 
             result = new EPub(test);
-            assertThat(result.getAuthor().get(),is("Vernors Vinge"));
+            assertEquals("Vernors Vinge",result.getAuthor().get());
         } finally {
             Files.deleteIfExists(test);
         }
@@ -113,23 +116,23 @@ public class EPubTest extends AbstractTests {
     public void isWithDRM() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/DRM Hunger Games II. Lembrasement .epub"));
         basicTestOnPackage(epub.getPackageDoc());
-        assertThat(epub.isProtected(),is(true));
+        assertTrue(epub.isProtected());
     }
 
 
     private void basicTestOnPackage(Package packageDoc) {
-        assertThat(packageDoc.getMetadata(),is(notNullValue()));
-        assertThat(packageDoc.getManifest(),is(notNullValue()));
-        assertThat(packageDoc.getSpine(),is(notNullValue()));
+        assertNotNull(packageDoc.getMetadata());
+        assertNotNull(packageDoc.getManifest());
+        assertNotNull(packageDoc.getSpine());
     }
 
     @Test
     public void epub1() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/Pyramides - Romain BENASSAYA.epub"));
-        assertThat(epub.getTitle().get(),is("Pyramides"));
-        assertThat(epub.getAuthor().get(),is("Romain Benassaya"));
-        assertThat(epub.getSubjects().size(),is(Integer.valueOf(1)));
-        assertThat(epub.getSubjects().get(0),is("Science-Fiction"));
+        assertEquals("Pyramides",epub.getTitle().get());
+        assertEquals("Romain Benassaya",epub.getAuthor().get());
+        assertEquals(Integer.valueOf(1),epub.getSubjects().size());
+        assertEquals("Science-Fiction",epub.getSubjects().get(0));
 
         //xml tests
         Package packageDoc = epub.getPackageDoc();
@@ -149,7 +152,7 @@ public class EPubTest extends AbstractTests {
         thirdDate.setContent("2018-03-23");
         thirdDate.setEvent("modification");
 
-        assertThat(metadata.getDates(),is(Arrays.asList(firstDate,secondDate,thirdDate)));
+        assertEquals(Arrays.asList(firstDate,secondDate,thirdDate),metadata.getDates());
 
 
         CreatorOrContributor a,c1,c2,c3,c4;
@@ -169,14 +172,14 @@ public class EPubTest extends AbstractTests {
         c4.setRole("bkp");
         c4.setName("Frédéric Hugot");
 
-        assertThat(metadata.getCreators(),is(Arrays.asList(a)));
-        assertThat(metadata.getContributors(),is(Arrays.asList(c1,c2,c3,c4)));
+        assertEquals(Arrays.asList(a),metadata.getCreators());
+        assertEquals(Arrays.asList(c1,c2,c3,c4),metadata.getContributors());
 
         String p = "Éditions Critic";
-        assertThat(metadata.getPublishers(),is(Arrays.asList(p)));
+        assertEquals(Arrays.asList(p),metadata.getPublishers());
 
         String r = "Romain Benassaya et Éditions Critic 2018";
-        assertThat(metadata.getRights(),is(Arrays.asList(r)));
+        assertEquals(Arrays.asList(r),metadata.getRights());
 
 
         Meta m1,m2;
@@ -187,12 +190,12 @@ public class EPubTest extends AbstractTests {
         m2.setContent("pyramides.jpg");
         m2.setName("cover");
 
-        assertThat(metadata.getMetas(),is(Arrays.asList(m1,m2)));
+        assertEquals(Arrays.asList(m1,m2),metadata.getMetas());
 
         Identifier identifier = new Identifier();
         identifier.setId("BookID");
         identifier.setValue("urn:uuid:446cd1b2-7a79-48a0-b6cf-607fc618c09e");
-        assertThat(metadata.getIdentifier(),is(identifier));
+        assertEquals(identifier,metadata.getIdentifier());
 
         Reference ref = new Reference();
         ref.setHref("Text/couverture.xhtml");
@@ -201,7 +204,7 @@ public class EPubTest extends AbstractTests {
         Guide guide = new Guide();
         guide.getReferences().add(ref);
 
-        assertThat(epub.getPackageDoc().getGuide(),is(guide));
+        assertEquals(guide,epub.getPackageDoc().getGuide());
     }
 
     @Test
@@ -226,11 +229,11 @@ public class EPubTest extends AbstractTests {
         CreatorOrContributor c3 = new CreatorOrContributor();
         c3.setId("id-2");
         c3.setName("Stephen Baxter");
-        assertThat(metadata.getCreators(),is(Arrays.asList(c1,c2,c3)));
+        assertEquals(Arrays.asList(c1,c2,c3),metadata.getCreators());
 
         try {
             EBook result = epub.copyToDirectory(test, EbookCopyOption.AddSubjectToPath, EbookCopyOption.AddAuthorToPath);
-            assertThat(result.getPath(),is(expected));
+            assertEquals(expected,result.getPath());
 
             Files.delete(result.getPath());
             Files.delete(result.getPath().getParent());
@@ -241,5 +244,134 @@ public class EPubTest extends AbstractTests {
         }
     }
 
+
+    @Test
+    public void readBook() throws IOException {
+        final String firstPage = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+                "<head>\n" +
+                "\t<title>Le Livre de Saskia</title>\n" +
+                "\t<link href=\"e9782919755394_css.css\" type=\"text/css\" rel=\"stylesheet\"/>\n" +
+                "</head>\n" +
+                "<body style=\"margin: 0px;\">\n" +
+                "<div class=\"cover\">\n" +
+                "<a id=\"cover\"/><div class=\"cover_image\"><div class=\"image\"><img src=\"e9782919755394_cover.jpg\" alt=\"e9782919755394_cover.jpg\"/></div></div>\n" +
+                "<a id=\"title26\"/></div>\n" +
+                "</body>\n" +
+                "</html>\n";
+
+        final String secondPage ="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+                "<head>\n" +
+                "\t<title>Le Livre de Saskia</title>\n" +
+                "\t<link href=\"e9782919755394_css.css\" type=\"text/css\" rel=\"stylesheet\"/>\n" +
+                "</head>\n" +
+                "<body style=\"margin: 0px;\">\n" +
+                "<div class=\"titlePage\">\n" +
+                "<a id=\"title27\"/>\n" +
+                "<div class=\"illustype_image\"><div class=\"image\"><img src=\"e9782919755394_i0001.jpg\" alt=\"e9782919755394_i0001.jpg\"/></div></div></div>\n" +
+                "</body>\n" +
+                "</html>\n";
+
+        final String thirdPage = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+                "<head>\n" +
+                "\t<title>Le Livre de Saskia</title>\n" +
+                "\t<link href=\"e9782919755394_css.css\" type=\"text/css\" rel=\"stylesheet\"/>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<div class=\"toc\">\n" +
+                "<a id=\"title28\"/><h1 class=\"title-toc\">Sommaire</h1>\n" +
+                "\n" +
+                "<div class=\"toc_entry\"><a href=\"e9782919755394_tp01.html\" class=\"toc_entry_titlePage\">Page de titre</a><br/>\n" +
+                "\n" +
+                "<a href=\"e9782919755394_ded01.html\" class=\"toc_entry_dedicationPage\">Dédicace</a><br/>\n" +
+                "<a href=\"e9782919755394_fm01.html\" class=\"toc_entry_frontMatter\"><span class=\"b\">Résumé du tome I</span> - <span class=\"b\">Le Réveil</span></a><br/>\n" +
+                "<a href=\"e9782919755394_fm02.html\" class=\"toc_entry_frontMatter\"><span class=\"b\">Prologue</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c01.html\" class=\"toc_entry_chapter\"><span class=\"b\">1</span> - <span class=\"b\">L’Initié</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c02.html\" class=\"toc_entry_chapter\"><span class=\"b\">2</span> - <span class=\"b\">L’attaque</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c03.html\" class=\"toc_entry_chapter\"><span class=\"b\">3</span> - <span class=\"b\">Torturée</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c04.html\" class=\"toc_entry_chapter\"><span class=\"b\">4</span> - <span class=\"b\">Le Nid</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c05.html\" class=\"toc_entry_chapter\"><span class=\"b\">5</span> - <span class=\"b\">Le Maître des kartans</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c06.html\" class=\"toc_entry_chapter\"><span class=\"b\">6</span> - <span class=\"b\">Claire</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c07.html\" class=\"toc_entry_chapter\"><span class=\"b\">7</span> - <span class=\"b\">La Pierre qui crie</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c08.html\" class=\"toc_entry_chapter\"><span class=\"b\">8</span> - <span class=\"b\">Mauvaises nouvelles</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c09.html\" class=\"toc_entry_chapter\"><span class=\"b\">9</span> - <span class=\"b\">Le Maître des arushs</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c10.html\" class=\"toc_entry_chapter\"><span class=\"b\">10</span> - <span class=\"b\">Premier test</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c11.html\" class=\"toc_entry_chapter\"><span class=\"b\">11</span> - <span class=\"b\">Le kartan blanc</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c12.html\" class=\"toc_entry_chapter\"><span class=\"b\">12</span> - <span class=\"b\">Entraînement</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c13.html\" class=\"toc_entry_chapter\"><span class=\"b\">13</span> - <span class=\"b\">Tempête</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c14.html\" class=\"toc_entry_chapter\"><span class=\"b\">14</span> - <span class=\"b\">Nahia</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c15.html\" class=\"toc_entry_chapter\"><span class=\"b\">15</span> - <span class=\"b\">Le vol</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c16.html\" class=\"toc_entry_chapter\"><span class=\"b\">16</span> - <span class=\"b\">Combat mortel</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c17.html\" class=\"toc_entry_chapter\"><span class=\"b\">17</span> - <span class=\"b\">Le piège</span></a><br/>\n" +
+                "<a href=\"e9782919755394_c18.html\" class=\"toc_entry_chapter\"><span class=\"b\">18</span> - <span class=\"b\">Hécatombe</span></a><br/>\n" +
+                "<a href=\"e9782919755394_ack01.html\" class=\"toc_entry_acknowPage\"><span class=\"b\">Remerciements</span></a><br/>\n" +
+                "<a href=\"e9782919755394_bm01.html\" class=\"toc_entry_backMatter\"><span class=\"b\">LE LIVRE DE SASKIA</span> - <span class=\"b\">PRÉSENTATION DE LA SÉRIE</span></a><br/>\n" +
+                "<a href=\"e9782919755394_bm02.html\" class=\"toc_entry_backMatter\"><span class=\"b\">LES HAUT CONTEURS</span></a><br/>\n" +
+                "<a href=\"e9782919755394_bm03.html\" class=\"toc_entry_backMatter\"><span class=\"b\">VIA TEMPORIS</span></a><br/>\n" +
+                "<a href=\"e9782919755394_bm04.html\" class=\"toc_entry_backMatter\"><span class=\"b\">Scrineo</span> - <span class=\"i\"><span class=\"b\">LE PUITS DES MÉMOIRES</span></span></a><br/>\n" +
+                "<a href=\"e9782919755394_cop01.html\" class=\"toc_entry_pubInfo\">Page de Copyright</a><br/>\n" +
+                "</div>\n" +
+                "</div>\n" +
+                "</body>\n" +
+                "</html>\n";
+
+        final String lastPageExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+                "<head>\n" +
+                "\t<title>Le Livre de Saskia</title>\n" +
+                "\t<link href=\"e9782919755394_css.css\" type=\"text/css\" rel=\"stylesheet\"/>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<div class=\"footnotes\">\n" +
+                "<a id=\"title31\"/>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn1\" href=\"e9782919755394_c01.html#ref_ftn_fn1\"><span class=\"footnote_number\">1</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn2\" href=\"e9782919755394_c01.html#ref_ftn_fn2\"><span class=\"footnote_number\">2</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn3\" href=\"e9782919755394_c02.html#ref_ftn_fn3\"><span class=\"footnote_number\">3</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn4\" href=\"e9782919755394_c03.html#ref_ftn_fn4\"><span class=\"footnote_number\">4</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn5\" href=\"e9782919755394_c05.html#ref_ftn_fn5\"><span class=\"footnote_number\">5</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn6\" href=\"e9782919755394_c05.html#ref_ftn_fn6\"><span class=\"footnote_number\">6</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div>\n" +
+                "<div class=\"footnote\"><a id=\"ftn_fn7\" href=\"e9782919755394_c07.html#ref_ftn_fn7\"><span class=\"footnote_number\">7</span></a>\n" +
+                "<p class=\"p\">Voir <span class=\"i\">Le Livre de Saskia</span>, tome I, <span class=\"i\">Le Réveil</span>.</p></div></div></body>\n" +
+                "</html>\n";
+        Path book = Paths.get("./src/test/resources/books/Livre de Saskia, Le 2 - Pavlenko, Marie.epub");
+        EBook eBook = EBookFactory.createEBook(book);
+        Optional<String> nextPage = eBook.getNextPage();
+        assertEquals(firstPage,nextPage.get());
+
+        //check second page
+        nextPage = eBook.getNextPage();
+        assertEquals(secondPage,nextPage.get());
+
+        //check third page
+        nextPage = eBook.getNextPage();
+        assertEquals(thirdPage,nextPage.get());
+
+        int i=3;
+        Optional<String> lastPage ;
+        while (true) {
+            lastPage = nextPage;
+            nextPage = eBook.getNextPage();
+            if (nextPage.isPresent()) {
+                i++;
+            }
+            else {
+                break;
+            }
+        }
+        assertEquals(32,i);
+        assertEquals(lastPageExpected,lastPage.get());
+    }
 
 }

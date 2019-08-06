@@ -3,7 +3,7 @@ package org.beynet.ebook.unsupported;
 import org.beynet.AbstractTests;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EbookCopyOption;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,26 +12,27 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class UnsupportedEBookTest extends AbstractTests {
     @Test
     public void fileExtension() throws IOException {
         UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/test.pdf"));
-        assertThat(unsupportedEBook.getFileExtension(),is(".pdf"));
+        assertEquals(".pdf",unsupportedEBook.getFileExtension());
     }
 
     @Test
     public void title() throws IOException {
         UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/test.pdf"));
-        assertThat(unsupportedEBook.getTitle(),is(Optional.empty()));
+        assertEquals(Optional.empty(),unsupportedEBook.getTitle());
     }
 
     @Test
     public void subjects() throws IOException {
         UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/test.pdf"));
-        assertThat(unsupportedEBook.getSubjects(),is(new ArrayList()));
+        assertEquals(new ArrayList(),unsupportedEBook.getSubjects());
     }
 
     @Test
@@ -43,8 +44,8 @@ public class UnsupportedEBookTest extends AbstractTests {
         try {
             UnsupportedEBook unsupportedEBook = new UnsupportedEBook(Paths.get("./src/test/resources/books/test.pdf"));
             result = unsupportedEBook.copyToDirectory(test, EbookCopyOption.AddSubjectToPath, EbookCopyOption.AddAuthorToPath);
-            assertThat(result.getPath(),is(expected));
-            assertThat(Files.exists(result.getPath()),is(true));
+            assertEquals(expected,result.getPath());
+            assertTrue(Files.exists(result.getPath()));
         }
         finally {
             if (result!=null && Files.exists(result.getPath())) Files.delete(result.getPath());

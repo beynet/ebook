@@ -1,9 +1,11 @@
 package org.beynet.ebook.epub.opf;
 
-import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class DateTest {
     @Test
@@ -20,7 +22,7 @@ public class DateTest {
         d2.setEvent("event");
         d2.setId("id");
 
-        assertThat(d1,is(d2));
+        assertEquals(d1,d2);
     }
 
     @Test
@@ -37,7 +39,7 @@ public class DateTest {
         d2.setEvent("event");
         d2.setId("id");
 
-        assertThat(d1.equals(d2),is(Boolean.FALSE));
+        assertFalse(d1.equals(d2));
     }
 
     @Test
@@ -54,7 +56,7 @@ public class DateTest {
         d2.setEvent("event2");
         d2.setId("id");
 
-        assertThat(d1.equals(d2),is(Boolean.FALSE));
+        assertFalse(d1.equals(d2));
     }
 
     @Test
@@ -71,7 +73,7 @@ public class DateTest {
         d2.setEvent("event");
         d2.setId("id3");
 
-        assertThat(d1.equals(d2),is(Boolean.FALSE));
+        assertFalse(d1.equals(d2));
     }
 
 }

@@ -40,5 +40,10 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
         throw new UnsupportedOperationException("unable to update subjects");
     }
 
+    @Override
+    public Optional<String> getNextPage() {
+        throw new UnsupportedOperationException("unable to read this ebook");
+    }
+
     private List<String> subjects = new ArrayList<>();
 }
