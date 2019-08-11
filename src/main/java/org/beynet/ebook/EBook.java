@@ -73,7 +73,14 @@ public interface EBook {
     /**
      * @return the next page to be read
      */
-    public Optional<String> getNextPage() ;
+    Optional<String> getNextPage() ;
+
+    /**
+     * @return the ebook previous page
+     */
+    Optional<String> getPreviousPage() ;
+
+    Optional<String> getDefaultCSS();
 
     String UNDEFINED_AUTHOR="undefined";
     String UNDEFINED_TITLE="undefined title";

@@ -45,5 +45,16 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
         throw new UnsupportedOperationException("unable to read this ebook");
     }
 
+    @Override
+    public Optional<String> getPreviousPage() {
+        throw new UnsupportedOperationException("unable to read this ebook");
+    }
+
+
+    @Override
+    public Optional<String> getDefaultCSS() {
+        throw new UnsupportedOperationException("unable to read this ebook");
+    }
+
     private List<String> subjects = new ArrayList<>();
 }

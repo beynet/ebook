@@ -358,6 +358,20 @@ public class EPubTest extends AbstractTests {
         nextPage = eBook.getNextPage();
         assertEquals(thirdPage,nextPage.get());
 
+        nextPage = eBook.getPreviousPage();
+        assertEquals(secondPage,nextPage.get());
+
+        nextPage = eBook.getPreviousPage();
+        assertEquals(firstPage,nextPage.get());
+
+        //check second page
+        nextPage = eBook.getNextPage();
+        assertEquals(secondPage,nextPage.get());
+
+        //check third page
+        nextPage = eBook.getNextPage();
+        assertEquals(thirdPage,nextPage.get());
+
         int i=3;
         Optional<String> lastPage ;
         while (true) {
@@ -372,6 +386,803 @@ public class EPubTest extends AbstractTests {
         }
         assertEquals(32,i);
         assertEquals(lastPageExpected,lastPage.get());
+
+        final String defaultCSS = "@charset \"utf-8\"; \n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Page */\n" +
+                "\n" +
+                "\t@page {\n" +
+                "\t\tmargin-top: 5px;\n" +
+                "\t\tmargin-bottom: 5px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\tbody {\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t\tfont-size: 0.8em;\n" +
+                "\t\tmargin-left: 10px;\n" +
+                "\t\tmargin-right: 25px;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Styles */\n" +
+                "\n" +
+                "\t.b {\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.i {\n" +
+                "\t\tfont-style: italic;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.u {\n" +
+                "\t\ttext-decoration: underline;\n" +
+                "\t}\n" +
+                "\n" +
+                "  .color {\n" +
+                "\t}\n" +
+                "\n" +
+                "/*lettrine*/\n" +
+                "\t.let {\n" +
+                "\t\tfont-size : 1.5em;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.go_to_new_line {\n" +
+                "\t\tclear:both;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\tsup {\n" +
+                "\t\tfont-size: 0.7em;\n" +
+                "\t\tvertical-align: super;\n" +
+                "\t\ttext-decoration: none;\n" +
+                "\t\tline-height: 0.3em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Sections */\n" +
+                "\n" +
+                "\t.part, .chapter, .section1, .section2, .section3, .section4, .section5, .section6, .section7 {\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.pubInfo {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Headlines  */\n" +
+                "\t\n" +
+                "\t\n" +
+                "\n" +
+                "\t.title  {\n" +
+                "\t\tfont-size: 1.4em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 2em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.subtitle  {\n" +
+                "\t\tfont-size: 1.2em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "\t/* Sections  */\n" +
+                "\t\n" +
+                "\t.title-part {\n" +
+                "\t\tfont-size: 2em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 2em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.title-chapter {\n" +
+                "\t\tfont-size: 1.6em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 2em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.title-section1 {\n" +
+                "\t\tfont-size: 1.3em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 2em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.title-section2 {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 2em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.title-section3, .title-section4, .title-section5, .title-section6, .title-section7 {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.title-blocktext-grey, .title-blocktext, .title-box-grey, .title-box, .title-sidebar-large-grey, .title-sidebar-large, .title-sidebar-grey, .title-sidebar {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.title-pubInfo ,.title-alsoby ,.title-aboutAuthorPage, title-definitions ,.title-aboutPublisherPage  ,.title-teaser, .title-forewordPage ,.title-praisePage ,.title-creditsPage ,.title-acknowPage ,.title-dedicationPage, .title-epigraphPage ,.title-index ,.title-glossary_full, .title-glossary, .title-appendix, .title-epilog, .title-frontMatter, .title-orderPage, .title-backMatter, .title-biblio, .title-toc, .title-introduction {\n" +
+                "\t\tfont-size: 1.6em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 2em;\n" +
+                "\t\tmargin-bottom: 2em;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.subtitle-part {\n" +
+                "\t\tfont-size: 1.5em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.subtitle-chapter {\n" +
+                "\t\tfont-size: 1.2em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.subtitle-section1 {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.subtitle-section2 {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\t\t\n" +
+                "\t.subtitle-section3, .subtitle-section4, .subtitle-section5, .subtitle-section6, .subtitle-section7 {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.subtitle-blocktext-grey, .subtitle-blocktext, .subtitle-box-grey, .subtitle-box, .subtitle-sidebar-large-grey, .subtitle-sidebar-large, .subtitle-sidebar-grey, .subtitle-sidebar {\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.subtitle-pubInfo ,.subtitle-alsoby ,.subtitle-aboutAuthorPage, .subtitle-definitions ,.subtitle-aboutPublisherPage  ,.subtitle-teaser, .subtitle-forewordPage ,.subtitle-praisePage ,.subtitle-creditsPage ,.subtitle-acknowPage ,.subtitle-dedicationPage, .subtitle-epigraphPage ,.subtitle-index ,.subtitle-glossary_full, .subtitle-glossary, .subtitle-appendix, .subtitle-epilog, .subtitle-frontMatter, .subtitle-orderPage, .subtitle-backMatter, .subtitle-biblio, .subtitle-toc {\n" +
+                "\t\tfont-size: 1.2em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\tmargin-bottom: 2em;\n" +
+                "\t}\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Paragraphs */\n" +
+                "\n" +
+                "\t.p, .p-br, .p-indent, .p-indent-br, .p-d, .p-d-br, .p-d-indent, .p-c, .p-c-br, .p-c-indent {\n" +
+                "\t\tmargin-top: 0;\n" +
+                "\t\tmargin-bottom: 0;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t/* P-blanc */\n" +
+                " \t.p-blanc, .p-blanc-box, .p-blanc-blocktext, .p-blanc-box-grey, .p-blanc-blocktext-grey, .p-blanc-sidebar, .p-blanc-sidebar-large, .p-blanc-sidebar-grey, .p-blanc-sidebar-large-grey {\n" +
+                "\t      margin:0em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p, .p-br {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-indent {\n" +
+                "\t\ttext-indent: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-indent-inverse {\n" +
+                "\t\tmargin-left: 3em;\n" +
+                "\t\ttext-indent: -3em;\n" +
+                "\t}\n" +
+                "\t.p-indent-inverse-suite {\n" +
+                "\t\tmargin-left: 3em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-indent-br {\n" +
+                "\t\ttext-indent: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-d, .p-d-br {\n" +
+                "\t\ttext-align: right;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-d-indent {\n" +
+                "\t\ttext-align: right;\n" +
+                "\t\ttext-indent: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-c, .p-c-br {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-c-indent {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\ttext-indent: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-indent-inverse-blocktext {\n" +
+                "\t\tmargin-left: 3em;\n" +
+                "\t\ttext-indent: -3em;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\t.p-indent-inverse-suite-blocktext {\n" +
+                "\t\tmargin-left: 3em;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.p-blocktext-grey, .p-blocktext, .p-box-grey, .p-box, .p-sidebar-large-grey, .p-sidebar-large, .p-sidebar-grey, .p-sidebar, .p-br-blocktext-grey, .p-br-blocktext, .p-br-box-grey, .p-br-box, .p-br-sidebar-large-grey, .p-br-sidebar-large, .p-br-sidebar-grey, .p-br-sidebar {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.p-c-blocktext-grey, .p-c-blocktext, .p-c-box-grey, .p-c-box, .p-c-sidebar-large-grey, .p-c-sidebar-large, .p-c-sidebar-grey, .p-c-sidebar, .p-c-br-blocktext-grey, .p-c-br-blocktext, .p-c-br-box-grey, .p-c-br-box, .p-c-br-sidebar-large-grey, .p-c-br-sidebar-large, .p-c-br-sidebar-grey, .p-c-br-sidebar {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.p-d-blocktext-grey, .p-d-blocktext, .p-d-box-grey, .p-d-box, .p-d-sidebar-large-grey, .p-d-sidebar-large, .p-d-sidebar-grey, .p-d-sidebar, .p-d-br-blocktext-grey, .p-d-br-blocktext, .p-d-br-box-grey, .p-d-br-box, .p-d-br-sidebar-large-grey, .p-d-br-sidebar-large, .p-d-br-sidebar-grey, .p-d-br-sidebar {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\ttext-align: right;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.p-indent-blocktext-grey, .p-indent-blocktext, .p-indent-box-grey, .p-indent-box, .p-indent-sidebar-large-grey, .p-indent-sidebar-large, .p-indent-sidebar-grey, .p-indent-sidebar, .p-indent-br-blocktext-grey, .p-indent-br-blocktext, .p-indent-br-box-grey, .p-indent-br-box, .p-indent-br-sidebar-large-grey, .p-indent-br-sidebar-large, .p-indent-br-sidebar-grey, .p-indent-br-sidebar {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\ttext-indent: 1em;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Images */\n" +
+                "\n" +
+                "\t\n" +
+                "\t.margin_image_left, .margin_image_left_net {\n" +
+                "\t\ttext-align: left;\n" +
+                "\t\tmargin-top: 1.5em;\n" +
+                "\t\tmargin-right: 0.7em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.margin_image_right, .margin_image_right_net {\n" +
+                "\t\ttext-align: right;\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-top: 1.5em;\n" +
+                "\t\tmargin-left: 0.7em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_right_in_paragraph, .image_right_in_paragraph_net, .image_right_in_paragraph_text_net,  {\n" +
+                "\t\tfloat: right;\n" +
+                "\t\tmargin-left: 0.7em;\n" +
+                "\t\tmargin-top: 1em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_left_in_paragraph, .image_left_in_paragraph_net, .image_left_in_paragraph_text_net {\n" +
+                "\t\tfloat: left;\n" +
+                "\t\tmargin-right: 0.7em;\n" +
+                "\t\tmargin-top: 1em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_left_in_paragraph img {\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_right_in_paragraph img {\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.image_left_in_paragraph_net img {\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_right_in_paragraph_net img {\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_left_in_paragraph_text_net img {\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_right_in_paragraph_text_net img {\n" +
+                "\t\tmax-height: 250px;\n" +
+                "\t\tmax-width: 250px;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.go_to_new_line {\n" +
+                "\t\tclear:both;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.illustype_image, .illustype_image_net, .illustype_image_tab, .illustype_image_text, .illustype_image_text_net, .illustype_image_math, .illustype_image_deco, .illustype_image_deco_net, .illustype_image_externe, .image_orig_tab, .image_sep_para, .illustype_image_right_in_paragraph_net, .illustype_image_left_in_paragraph_net, .illustype_image_left_in_paragraph_text_net, .illustype_image_right_in_paragraph_text_net, .illustype_image_right_in_paragraph, .illustype_image_left_in_paragraph {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\tmargin-top: 1em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.illustype_fullpage_image, .illustype_fullpage_image_net, .illustype_fullpage_image_tab, .illustype_fullpage_image_text, .illustype_fullpage_image_text_net, .illustype_fullpage_image_math, .illustype_fullpage_image_deco, .illustype_fullpage_image_deco_net, .fullpage_image_orig_tab, .illustype_fullpage_image_externe {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\timg {\n" +
+                "\t\tmax-width: 100%;\n" +
+                "\t\tmax-height: 100%;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.image_deco {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.caption {\n" +
+                "\t\tfont-size: 0.9em;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.credits {\n" +
+                "\t\tfont-size: 0.7em;\n" +
+                "\t\ttext-align: center;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t.cover_image {\n" +
+                "\t      margin-top: 0em;\n" +
+                "\t      margin-bottom: 0em;\n" +
+                "\t      text-align: center;\n" +
+                "\t}\n" +
+                "\t.cover .illustype, .cover .illustype_image, .cover .illustype_image_net, .cover .illustype_image_tab, .cover .illustype_image_text, .cover .illustype_image_text_net, .cover .illustype_image_math, .cover .illustype_image_deco, .cover .illustype_image_deco_net, .cover .image_orig_tab {\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.cover img, .titlePage img {\n" +
+                "\t\theight: 100%;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.titlePage .illustype_image {\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 0em;\n" +
+                "\t\t}\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Box */\n" +
+                "\n" +
+                "\t.box {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\tborder: 1px solid #333333;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.box-grey {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\tborder: 1px solid #333333;\n" +
+                "\t\tbackground-color: #CCCCCC;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.blocktext {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.blocktext-grey {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\tbackground-color: #CCCCCC;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.sidebar {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.sidebar-grey {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\tbackground-color: #CCCCCC;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.sidebar-large {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.sidebar-large-grey {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tpadding: 1em;\n" +
+                "\t\tbackground-color: #CCCCCC;\n" +
+                "\t\ttext-align: justify;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* TOC */\n" +
+                "\n" +
+                "\t.toc_entry {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.toc_entry_part {\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.toc_entry_chapter {\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* MINITOC */\n" +
+                "\n" +
+                "\t.minitoc {\n" +
+                "\t\tborder-top: 1px solid #555555;\n" +
+                "\t\tborder-bottom: 1px solid #555555;\n" +
+                "\t\tmargin-left: 2em;\n" +
+                "\t\tpadding-top: 1em;\n" +
+                "\t\tpadding-bottom: 1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.title-minitoc {\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tfont-style: normal;\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.minitoc .toc_entry_section1 {\n" +
+                "\t\tfont-size: 0.8em;\n" +
+                "\t}\n" +
+                "\t.minitoc .toc_entry_section2 {\n" +
+                "\t\tfont-size: 0.7em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Index */\n" +
+                "\n" +
+                "\t.index_section {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Tables */\n" +
+                "\n" +
+                "\t.tableau {\n" +
+                "\t\tdisplay: block;\n" +
+                "\t\tmargin-top: 1.5em;\n" +
+                "\t\tmargin-bottom: 1.5em;\n" +
+                "\t\tpadding: 0.25em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\ttable\n" +
+                "\t{\n" +
+                "\t\tborder-collapse: collapse;\n" +
+                "\t\tmargin-top: 1em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t\tmargin-left:auto;\n" +
+                "\t   \tmargin-right:auto;\n" +
+                "\t   \tfont-size: small;\n" +
+                "\t   \ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\tth {\n" +
+                "\t\tfont-weight: bold;\n" +
+                "\t}\t\n" +
+                "\t\n" +
+                "\t.filet_l\n" +
+                "\t{\n" +
+                "\t\tborder-left: thin solid;\n" +
+                "\t\tpadding:10px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.filet_r\n" +
+                "\t{\n" +
+                "\t\tborder-right: thin solid;\n" +
+                "\t\tpadding:10px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.filet_t\n" +
+                "\t{\n" +
+                "\t\tborder-top: thin solid;\n" +
+                "\t\tpadding:10px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.filet_b\n" +
+                "\t{\n" +
+                "\t\tborder-bottom: thin solid;\n" +
+                "\t\tpadding:10px;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.filet_x\n" +
+                "\t{\n" +
+                "\t\tpadding:10px;\n" +
+                "}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Lists, no marge in list otherwise displayed inline by Kindle*/\n" +
+                "\n" +
+                "\tol, ul {\n" +
+                "\t\tmargin-left: 2.5em;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tlist-style: none;\n" +
+                "\t\ttext-indent: -1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\tp ul, p ol {\n" +
+                "\t\tmargin-top: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\tul.bl {\n" +
+                "\t\tlist-style: disc;\n" +
+                "\t\ttext-indent: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\tol.al {\n" +
+                "\t\tlist-style: lower-latin;\n" +
+                "\t\ttext-indent: 0em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\tol.nl {\n" +
+                "\t\tlist-style: decimal;\n" +
+                "\t\ttext-indent: 0em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.li {}\n" +
+                "\t\n" +
+                "\t\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Footnotes */\n" +
+                "\n" +
+                "\t.footnote {\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tfont-size: 1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Endnotes */\n" +
+                "\n" +
+                "\t.endnotes {\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-bottom: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Computer & scri */\n" +
+                "\n" +
+                "\t.computer  {\n" +
+                "\t\tfont-family : monospace;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\ttext-indent: 0em;\n" +
+                "\t\tfont-size: 0.8em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.scri  {\n" +
+                "\t\tfont-family : monospace;\n" +
+                "\t\tfont-size: 0.8em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Verse Source */\n" +
+                "\n" +
+                "\t.source {\n" +
+                "\t\tmargin-left: 15%;\n" +
+                "\t\tmargin-right: 15%;\n" +
+                "\t\ttext-align: right;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t\n" +
+                "\t.verse {\n" +
+                "\t\tmargin-left: 15%;\n" +
+                "\t\tmargin-right: 15%;\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\ttext-align: left;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t\n" +
+                "\t.source-blocktext-grey, .source-blocktext, .source-box-grey, .source-box, .source-sidebar-large-grey, .source-sidebar-large, .source-sidebar-grey, .source-sidebar {\n" +
+                "\t\ttext-align: right;\n" +
+                "\t\tmargin-bottom: 0.5em;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t}\n" +
+                "\n" +
+                "\t.verse-blocktext-grey, .verse-blocktext, .verse-box-grey, .verse-box, .verse-sidebar-large-grey, .verse-sidebar-large, .verse-sidebar-grey, .verse-sidebar {\n" +
+                "\t\tmargin-top: 0.5em;\n" +
+                "\t\ttext-align: right;\n" +
+                "\t\tmargin-left: 1em;\n" +
+                "\t\tmargin-right: 1em;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Glossaire */\n" +
+                "\n" +
+                "\t.termdef {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.term {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.def {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.definition {\n" +
+                "\t}\n" +
+                "\n" +
+                "\t\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Divers */\n" +
+                "\t\n" +
+                "\t.copyrights {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.isbn {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.author {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.author-blocktext, .author-box {\n" +
+                "\t\ttext-align: center;\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.contributor {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.serie {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.translator {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.publisher {\n" +
+                "\t}\n" +
+                "\n" +
+                "/* ---------------------------------------------------------- */\n" +
+                "/* Flashcards */\n" +
+                "\t.flashcard {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.question {\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\t.answer {\n" +
+                "\t}";
+
+        assertEquals(defaultCSS,eBook.getDefaultCSS().get());
     }
 
 }

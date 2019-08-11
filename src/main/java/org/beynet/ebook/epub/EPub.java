@@ -167,8 +167,6 @@ public class EPub extends AbstractEBook implements EBook {
 
     @Override
     public Optional<String> getNextPage() {
-
-        Optional<String> result ;
         List<Item> items = packageDoc.getManifest().getItems();
 
         currentItem.ifPresentOrElse(
@@ -200,8 +198,47 @@ public class EPub extends AbstractEBook implements EBook {
                 }
         );
 
+        return readCurrentItem();
+    }
 
-        result = currentItem.map(item -> {
+
+    @Override
+    public Optional<String> getPreviousPage() {
+        List<Item> items = packageDoc.getManifest().getItems();
+
+        currentItem.ifPresent(curr->{
+            currentItem = Optional.empty();
+            for (Item item : items) {
+                if (curr.equals(item)) {
+                    break;
+                }
+                if (item!=null && XHTML.equals(item.getMediaType())) {
+                    currentItem = Optional.of(item);
+                }
+            }
+        });
+
+        return readCurrentItem();
+    }
+
+    @Override
+    public Optional<String> getDefaultCSS() {
+        List<Item> items = packageDoc.getManifest().getItems();
+        for (Item item : items) {
+            if (item!=null && CSS.equals(item.getMediaType())) {
+                return readItem(Optional.of(item));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> readCurrentItem() {
+        return readItem(currentItem);
+    }
+
+
+    private Optional<String> readItem(Optional<Item> optItem) {
+        return optItem.map(item -> {
             try (FileSystem fs = getFileSystem()) {
                 Path packageDirectory = fs.getPath(packageDocPath).getParent();
                 Path itemPath = packageDirectory.resolve(item.getHref());
@@ -212,9 +249,8 @@ public class EPub extends AbstractEBook implements EBook {
                 return "";
             }
         });
-
-        return result;
     }
+
 
     private  static JAXBContext context ;
     static {
@@ -238,6 +274,7 @@ public class EPub extends AbstractEBook implements EBook {
     private Optional<Item>   currentItem ;
 
     private final static String XHTML="application/xhtml+xml";
+    private final static String CSS="text/css";
     private final static Logger logger = LogManager.getLogger(EPub.class);
 
 }

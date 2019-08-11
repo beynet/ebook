@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.DefaultConfiguration;
+import org.beynet.ebook.gui.EBookGUI;
 import org.beynet.utils.admin.commandline.BooleanOption;
 import org.beynet.utils.admin.commandline.CommandLineOptionsAnalyzer;
 import org.beynet.utils.admin.commandline.Option;
@@ -21,6 +22,7 @@ import java.util.List;
 public class EBookMain {
     private final static Logger logger = LogManager.getLogger(EBookMain.class);
     final static BooleanOption sort = new BooleanOption("--sort", "sort an ebook directory (all ebook found in source into target)");
+    final static BooleanOption gui = new BooleanOption("--gui", "display target ebook");
     final static StringOption target = new StringOption("--target", "target folder or file", false);
     final static StringOption source = new StringOption("--source", "source folder", false);
     final static StringOption addSubject = new StringOption("--addSubject", "add the subject to target", false);
@@ -35,6 +37,7 @@ public class EBookMain {
             addSubject,
             removeSubject,
             changeAuthor,
+            gui,
             info
     );
 
@@ -152,6 +155,10 @@ public class EBookMain {
 
     }
 
+    private static void displayEbook() {
+        if (!target.isOptionFound()) throw new IllegalArgumentException("target expected");
+        EBookGUI.main(Paths.get(target.getValue()));
+    }
 
     public static void main(String[] args ) throws IOException {
         Configurator.initialize(new DefaultConfiguration());
@@ -172,6 +179,9 @@ public class EBookMain {
         }
         else if (changeAuthor.isOptionFound()){
             changeAuthor();
+        }
+        else if (gui.isOptionFound()) {
+            displayEbook();
         }
         else {
             printHelp();
