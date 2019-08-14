@@ -4,10 +4,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public abstract class AbstractEBook implements EBook {
@@ -15,9 +17,69 @@ public abstract class AbstractEBook implements EBook {
     public AbstractEBook(Path path) throws IOException {
         this.path = path;
         if (!Files.exists(this.path)) throw new IOException("File not found "+path.toString());
+        createConfDirectory();
+        this.properties = null ;
     }
 
-    private String toFileName(String p) {
+    protected Properties getProperties() {
+        synchronized (this) {
+            if (this.properties == null) {
+                getIdentifier().ifPresentOrElse(id ->{
+                    this.propertyFilePath = getTargetDirectory().resolve(Paths.get(id+".ini"));
+                    this.properties = new Properties();
+                    if (Files.exists(this.propertyFilePath)) {
+                        try (InputStream is = Files.newInputStream(this.propertyFilePath)) {
+                            this.properties.load(is);
+                        } catch (IOException e) {
+                            logger.error("unable to load file ", e);
+                        }
+                    }
+                },
+                        ()->{
+                            logger.error("current ebook has no identifier"+getPath().toString());
+                        }
+                        );
+
+            }
+        }
+        return this.properties;
+    }
+
+    protected void saveProperties() {
+        synchronized (this) {
+            getProperties();
+            try (OutputStream os = Files.newOutputStream(this.propertyFilePath)){
+                properties.store(os, null);
+            } catch (IOException e) {
+                logger.error("unable to save property file",e);
+            }
+        }
+    }
+
+    protected void saveCurrentPage(String page) {
+        getProperties().put(CURRENT_PAGE,page);
+        saveProperties();
+    }
+
+    protected Optional<String> loadSavedCurrentPage() {
+        return Optional.ofNullable((String)getProperties().getProperty(CURRENT_PAGE));
+    }
+
+
+    protected abstract Optional<String> getIdentifier() ;
+
+
+    private Path getTargetDirectory() {
+        final Path userHome = Paths.get((String) System.getProperty("user.home"));
+        return userHome.resolve(Paths.get(".ebook"));
+    }
+
+    private void createConfDirectory() throws IOException {
+        final Path targetDirectory = getTargetDirectory();
+        if (!Files.exists(targetDirectory)) Files.createDirectories(targetDirectory);
+    }
+
+    protected String toFileName(String p) {
         return p.replaceAll("[\\\\<>:|/?*\"]","").stripLeading().stripTrailing();
     }
 
@@ -87,6 +149,9 @@ public abstract class AbstractEBook implements EBook {
         return path;
     }
 
-    private Path path;
+    private Path       path            ;
+    private Properties properties      ;
+    private Path       propertyFilePath;
     private final static Logger logger = LogManager.getLogger(AbstractEBook.class);
+    private final static String CURRENT_PAGE = "currentPage";
 }

@@ -347,7 +347,7 @@ public class EPubTest extends AbstractTests {
                 "</html>\n";
         Path book = Paths.get("./src/test/resources/books/Livre de Saskia, Le 2 - Pavlenko, Marie.epub");
         EBook eBook = EBookFactory.createEBook(book);
-        Optional<String> nextPage = eBook.getNextPage();
+        Optional<String> nextPage = eBook.getFirstPage();
         assertEquals(firstPage,nextPage.get());
 
         //check second page
@@ -371,6 +371,10 @@ public class EPubTest extends AbstractTests {
         //check third page
         nextPage = eBook.getNextPage();
         assertEquals(thirdPage,nextPage.get());
+        {
+            EBook copy =  EBookFactory.createEBook(book);
+            assertEquals(thirdPage,copy.getCurrentPage().get());
+        }
 
         int i=3;
         Optional<String> lastPage ;
@@ -386,6 +390,11 @@ public class EPubTest extends AbstractTests {
         }
         assertEquals(32,i);
         assertEquals(lastPageExpected,lastPage.get());
+
+        {
+            EBook copy =  EBookFactory.createEBook(book);
+            assertEquals(lastPageExpected,copy.getCurrentPage().get());
+        }
 
         final String defaultCSS = "@charset \"utf-8\"; \n" +
                 "\n" +
@@ -1183,6 +1192,476 @@ public class EPubTest extends AbstractTests {
                 "\t}";
 
         assertEquals(defaultCSS,eBook.getDefaultCSS().get());
+    }
+
+    @Test
+    public void leMondeDiplo() throws IOException {
+        Path lmd = Paths.get("./src/test/resources/books/Juillet 2019.epub");
+        EBook eBook = EBookFactory.createEBook(lmd);
+        Optional<String> firstPage = eBook.getFirstPage();
+        final String expectedFirstPage =  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!DOCTYPE html>\n" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n" +
+                "   <head>\n" +
+                "      <meta charset=\"utf-8\" />\n" +
+                "      <link href='ebook_diplo_base.css' rel='stylesheet' media='all' type='text/css' />\n" +
+                "      <link href='ebook_diplo_plus.css' rel='stylesheet' media='all' type='text/css' />\n" +
+                "        <style type=\"text/css\">\n" +
+                "            img{\n" +
+                "                max-width:100%;\n" +
+                "            }\n" +
+                "        </style>\n" +
+                "   </head>\n" +
+                "   <body xml:lang=\"fr\">\n" +
+                "      <section class=\"base\" id=\"cover\">\n" +
+                "         <div id=\"cover-image\">\n" +
+                "           <img src=\"cover.jpg\" style=\"max-width:100%;\" alt=\"Juillet 2019\" />\n" +
+                "         </div>\n" +
+                "      </section>\n" +
+                "   </body>\n" +
+                "</html>";
+        assertEquals(expectedFirstPage,firstPage.get());
+
+        Optional<String> secondPage = eBook.getNextPage();
+        final String expectedSecondPage = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+                "<head>\n" +
+                "<link href='../ebook_diplo_base.css' rel='stylesheet' media='all' type='text/css' />\n" +
+                "<link href='../ebook_diplo_plus.css' rel='stylesheet' media='all' type='text/css' />\n" +
+                "<title>…</title>\n" +
+                "</head>\n" +
+                "<body xml:lang=\"fr\" lang=\"fr\">\n" +
+                "<div id=\"conteneur\">\n" +
+                "<div class=\"tetiere\"><i>Le Monde diplomatique</i>, juillet 2019 : au sommaire</div>\n" +
+                "<div id=\"contenu\" class=\"sommaire\">\n" +
+                "<ul>\n" +
+                "<li class=\"liste\">\n" +
+                "<ul class=\"hermetique une\">\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60058\">\n" +
+                "<h3><a href='48297a6e74f19d19617e8a796ba1a73d.xhtml'>Libre-échange ou écologie !</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"inedit edito\">Editorial,</span> Serge Halimi <span class=\"pages\">• page 1</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60058 intro lintro\">En remportant 10 % des sièges lors de l’élection du Parlement européen, les écologistes ont réveillé un vieux débat sur le positionnement politique de leur mouvement. Est-il plutôt de gauche, ou plutôt libéral ? A priori, libéralisme et protection de l’environnement devraient former un couple explosif.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60012\">\n" +
+                "<h3><a href='da1b86bd0419ac8fd575cb9eb7f65131.xhtml'>« Quelle est votre race ? »</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Benoît Bréville <span class=\"pages\">• pages 1 et 23</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60012 intro lintro\">Êtes-vous « noir », « blanc », « amérindien », « asiatique »… ? Depuis plus de deux siècles, les résidents américains doivent déclarer leur « race » aux agents du recensement. Instrument des politiques de lutte contre la discrimination, les statistiques ethniques ainsi obtenues ont fini par renforcer le sentiment d’appartenance identitaire. Au risque de légitimer les divisions qu’elles étaient supposées combattre.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</li>\n" +
+                "<li class=\"seul\">\n" +
+                "<h3><a href='83fa9f20c0f1c1919d7f43e851e8b990.xhtml'>La page deux</a></h3>\n" +
+                "<div class=\"intro\">« Rectificatif », courriers, coupures de presse.</div>\n" +
+                "</li>\n" +
+                "<li class=\"dossiers liste\">\n" +
+                "<div class=\"dossier\">\n" +
+                "<ul class=\"hermetique\">\n" +
+                "<li class=\"une\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60076\">\n" +
+                "<h3><span class=\"pretitre\">Dossier</span> <a href='75a00c40dfda91e1354b47e333c95d73.xhtml'>L’avenir de l’usine</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• page 17</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">La contribution de l’industrie dans l’économie a été divisée par deux, parfois par trois, dans l’ensemble des pays riches depuis 1970. Pour les uns, le phénomène résulte d’une évolution naturelle : comme un papillon émerge de la chrysalide, l’économie passerait spontanément de l’usine au bureau. D’autres suggèrent que la désindustrialisation s’explique avant tout par un choix politique : délocaliser les ateliers vers les pays du sud, moins coûteux pour le patronat. Alors que l’industrie demeure l’une des principales sources d’emploi, sa relance soulève des oppositions idéologiques, techniques et environnementales. La seule loi du marché pourra-t-elle y répondre ?</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60022\">\n" +
+                "<h3><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60022'>Réconcilier l’industrie et la nature</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Jean Gadrey <span class=\"pages\">• pages 1, 20 et 21</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">Ayant associé le développement économique et l’amélioration des conditions de vie, les forces politiques progressistes ont longtemps négligé l’impact des activités humaines sur l’environnement. L’urgence de protéger la planète impliquerait-elle de renoncer aux bienfaits de la société industrielle ? Pas nécessairement, dès lors que mutent certaines des habitudes de consommation auxquelles elle a donné naissance.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60025\">\n" +
+                "<h3><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60025'>Idées reçues sur la relance</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Laura Raim <span class=\"pages\">• page 17</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">« L’industrie, c’est fini, place aux services », « L’État n’a pas à se mêler de ça », « L’innovation vient toujours du privé », « La compétitivité exige de réduire le coût du travail », « Le protectionnisme est inefficace et dangereux » : Laura Raim déconstruit cinq préjugés sur la relance économique.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60085\">\n" +
+                "<h3><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60085'>Quand le Sud misait sur la« bourgeoisie nationale »</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Vivek Chibber <span class=\"pages\">• pages 18 et 19</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">Suffit-il à l’État de venir en aide aux entrepreneurs nationaux pour développer son secteur industriel ? Au cours des années 1960 et 1970, plusieurs pays ont opté pour cette stratégie, se heurtant à chaque fois aux mêmes difficultés.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60084\">\n" +
+                "<h3><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60084'>L’Aube sur un fil</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Maurice Midena <span class=\"pages\">• pages 18 et 19</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">Le mouvement de relocalisation d’activités industrielles au sein de l’Hexagone suscite un engouement pour le « made in France ». Ranimer une filière n’a toutefois rien d’aisé, car on a détruit plus que des emplois en licenciant des salariés.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60079\">\n" +
+                "<h4><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60079'>Entreprises frénétiques</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• page 19</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60023\">\n" +
+                "<h4><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60023'>Façonner demain</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• pages 20 et 21</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60024\">\n" +
+                "<h4><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60024'>La condition de l’indépendance</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• page 21</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60086\">\n" +
+                "<h4><a href='75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60086'>Laminage</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Cécile Marin <span class=\"pages\">•  Cartographie</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li class=\"liste\">\n" +
+                "<ul>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60057\">\n" +
+                "<h3><a href='ff01e338e14a37e99aee869a3450728f.xhtml'>Keynes et le prix de la paix</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Alain Garrigou <span class=\"et\">&amp;</span> Jean-Paul Guichard <span class=\"pages\">• page 3</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60057 intro lintro\">Un siècle après sa signature, le 28 juin 1919, le traité de Versailles est généralement abordé à la lumière de ses conséquences supposées : accablant l’Allemagne, il aurait favorisé la montée du nazisme. Les conditions concrètes de son élaboration sont en revanche souvent négligées, et notamment le rôle de certains personnages-clés, tel l’économiste John Maynard Keynes.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60019\">\n" +
+                "<h3><a href='658eaf5ba6d873a1c5dcebc1445a957e.xhtml'>En Corse, « il y a un éléphant dans le salon »</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Jean-François Bernardini <span class=\"pages\">• pages 4 et 5</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60019 intro lintro\">Après l’adieu aux armes et les victoires électorales, les autonomistes corses sont confrontés à l’exercice du pouvoir depuis 2015. La relance de la production locale et la lutte contre la désertification des zones rurales restent des défis majeurs. Et, si le projet de réforme constitutionnelle consacre la reconnaissance d’un statut particulier, les relations avec Paris demeurent marquées par la défiance.</div>\n" +
+                "</div>\n" +
+                "<ul class=\"voiraussis\">\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<h4><a href='658eaf5ba6d873a1c5dcebc1445a957e.xhtml#ancre60017'>Vivre et travailler au pays</a></h4>\n" +
+                "<div class=\"dates_auteurs\">Dominique Franceschetti <span class=\"pages\">• page 5</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60018\">\n" +
+                "<h3><a href='658eaf5ba6d873a1c5dcebc1445a957e.xhtml#ancre60018'>Un trésor agricole et pastoral</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span title='Dominique Franceschetti' class='abbr'>D. F.</span> <span class=\"pages\">• pages 4 et 5</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60018 intro lintro\">On ne compte plus les reportages, les livres, les films célébrant la « beauté sauvage » des paysages corses, villages haut perchés, maquis délicieusement odorant et impénétrable, sommets enneigés, vastes forêts... Cette vision idyllique masque une réalité dont les Corses n’ont aucune raison de se réjouir.</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60056\">\n" +
+                "<h3><a href='ddbf782c20bf13327e03a18ff8e404bc.xhtml'>Le cadeau empoisonné du tourisme culturel</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Geneviève Clastres <span class=\"pages\">• page 6</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60056 intro lintro\">Chaque année, une cinquantaine de sites naturels ou culturels se portent candidats à l’inscription sur la liste du patrimoine mondial pour se voir accorder une protection au bénéfice de toute l’humanité. Cependant, en délivrant ce label, l’Unesco oriente aussi fortement les flux touristiques. Un appel d’air rémunérateur, mais qui peut s’avérer ravageur.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60011\">\n" +
+                "<h3><a href='f6f2e1a5f2afe583c3ef4da90fc6cd84.xhtml'>Le non-procès de la violence néonazie</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Massimo Perinelli <span class=\"et\">&amp;</span> Christopher Pollmann <span class=\"pages\">• page 7</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60011 intro lintro\">Une cellule néonazie, des meurtres en série, une police qui regarde ailleurs : tels sont les ingrédients d’un drame qui hante l’Allemagne depuis le début des années 2000. Instruit de 2013 à 2018 à Munich, le procès a révélé par ses carences mêmes les ambiguïtés des services de sécurité ainsi que de l’institution judiciaire vis-à-vis de la violence d’extrême droite.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60038\">\n" +
+                "<h3><a href='c5987ed5eb1a227c8b6733905b5462ce.xhtml'>Géopolitique de la crise vénézuélienne</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Alexander Main <span class=\"pages\">• pages 8 et 9</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60038 intro lintro\">L’offensive de Washington contre le président vénézuélien Nicolás Maduro s’est appuyée sur l’assentiment des dirigeants conservateurs de la région, désormais majoritaires. Grâce à eux, l’interventionnisme américain a pu se grimer en préoccupation humanitaire… Mais le jusqu’au-boutisme de l’administration Trump semble être parvenu à exaspérer la droite latino-américaine, pourtant docile.</div>\n" +
+                "</div>\n" +
+                "<ul class=\"voiraussis\">\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60016\">\n" +
+                "<h3><a href='c5987ed5eb1a227c8b6733905b5462ce.xhtml#ancre60016'>Le retour des pieuvres médiatiques</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Anne-Dominique Correa <span class=\"pages\">• pages 8 et 9</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60016 intro lintro\">Argentine, Équateur, Brésil : partout, le même scénario. Des dirigeants conservateurs parviennent au pouvoir après une longue période de gouvernements de gauche. À peine sont-ils élus qu’une urgence les anime : détricoter les mesures de réglementation de la presse qu’avaient instaurées leurs prédécesseurs pour encadrer le pouvoir politique des médias privés.</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60035\">\n" +
+                "<h3><a href='160fe2605e0d3183bb72c3f55876abc3.xhtml'>En Inde, comment remporter les élections avec un bilan désastreux</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Christophe Jaffrelot <span class=\"pages\">• pages 10 et 11</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60035 intro lintro\">À la suite de sa victoire électorale de 2014, le premier ministre indien Narendra Modi avait convié son homologue pakistanais à sa prestation de serment, laissant espérer des négociations de paix. Cinq ans plus tard, il l’a exclu des cérémonies d’investiture. lors de la campagne des législatives, M. Modi a misé sur la peur de l’ennemi traditionnel, ainsi que sur le nationalisme hindou.</div>\n" +
+                "</div>\n" +
+                "<ul class=\"voiraussis\">\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<h4><a href='160fe2605e0d3183bb72c3f55876abc3.xhtml#ancre60034'>Mainmise sur le Parlement</a></h4>\n" +
+                "<div class=\"dates_auteurs\"><span title='Christophe Jaffrelot' class='abbr'>Ch. J.</span> <span class=\"pages\">• page 11</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<h4><a href='160fe2605e0d3183bb72c3f55876abc3.xhtml#ancre60077'>L’inde, après les élection de 2019</a></h4>\n" +
+                "<div class=\"dates_auteurs\"><span title='Cécile Marin' class='abbr'>C. M.</span> <span class=\"pages\">• Cartographie</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60036\">\n" +
+                "<h3><span class=\"pages\"><a href='3f4dca9e44f00bf5afb75046202d8870.xhtml'>Les éternels disparus du Liban</a></span></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">Emmanuel Haddad <span class=\"pages\">• page 12</span></span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60036 intro lintro\">Le sort des disparus durant la guerre civile libanaise (1975-1990) — pour la plupart victimes d’enlèvement — ne semble guère intéresser des autorités politiques soucieuses de tourner la page pour favoriser la reconstruction du pays. Mais la mobilisation des familles concernées empêche l’oubli de s’installer et contribue à documenter l’un des épisodes les plus tragiques du conflit.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60053\">\n" +
+                "<h3><a href='40b397a1b8ed1473256dfd87c4387e26.xhtml'>Sahel, les militaires évincent le Quai d’Orsay</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Rémi Carayol <span class=\"pages\">• page 13</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60053 intro lintro\">Malgré un important déploiement armé (opération française « Barkhane », mission des Nations unies, etc.), les massacres de civils se multiplient au Mali et dans la sous-région. Cause méconnue de cette impasse : le Sahel est devenu la chasse gardée des militaires, qui imposent aux diplomates du Quai d’Orsay une vision trop étroitement sécuritaire pour être efficace.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60037\">\n" +
+                "<h3><a href='1a405368e1a878ad10ef134ff14cd7a1.xhtml'>Les Louises en insurrection</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Éloi Valat <span class=\"pages\">• pages 14 et 15</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60037 intro lintro\">Blanchisseuses, relieuses, cantinières, journalistes… celles que leurs adversaires appelleront les « pétroleuses » interviennent splendidement dans les combats de la Commune. Elles sont privées du droit de vote, mais elles se font entendre dans les clubs de quartier, demandent l’égalité des salaires et la création de crèches, engagent la reconnaissance de l’union libre. La Commune fut exterminée, les idées et les idéaux survécurent.</div>\n" +
+                "</div>\n" +
+                "<ul class=\"voiraussis\">\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<h4><a href='1a405368e1a878ad10ef134ff14cd7a1.xhtml#ancre60015'>« Vivre libres »</a></h4>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• page 15</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60026\">\n" +
+                "<h3><a href='8c460c9acb634a60e89c628bf5da6fb4.xhtml'>Europe de la défense, une armée de papier</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Philippe Leymarie <span class=\"pages\">• page 16</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60026 intro lintro\">Le 18 avril dernier, le Parlement de Strasbourg a approuvé la création du Fonds européen de la défense. Doté de 13 milliards d’euros, il financera des projets industriels intéressant plusieurs États. Mais au service de quelle vision stratégique ? Depuis trente ans, l’Union bricole des outils militaires et techniques sans parvenir à donner corps à une véritable politique de sécurité.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60033\">\n" +
+                "<h3><a href='53e1a6a8033b7401e9d547c19e136d33.xhtml'>La bagarre de l’hectare</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Lucile Leclair <span class=\"pages\">• page 22</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60033 intro lintro\">Le désengagement de l’État en milieu rural et le dévoiement de ses outils de régulation se manifestent par l’inflation des prix des terres cultivables. En abandonnant au marché cette ressource limitée et non reproductible, les pouvoirs publics entravent l’installation de jeunes exploitants et fragilisent la profession agricole, qui peine à assurer son renouvellement générationnel.</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60049\">\n" +
+                "<h3><a href='c6f3c185eb5a403798ebcb8d84ad1a2e.xhtml'>L’art de détourner George Orwell</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Thierry Discepolo <span class=\"pages\">• page 27</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60049 intro lintro\">Les références à l’auteur de « 1984 » se sont multipliées depuis une vingtaine d’années. Alors que ses engagements revendiqués l’ancraient à gauche, c’est désormais une pensée néoconservatrice qui se revendique de son œuvre. Récupération d’ambiguïtés possibles ou dévoiement ?</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"tige\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60014\">\n" +
+                "<h3><a href='eea4b35800f8288b512ead004a5fab3e.xhtml'>Rigolez, vous êtes exploité</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Julien Brygo <span class=\"pages\">• page 28</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"crayon article-descriptif-60014 intro lintro\">Des conditions de travail déplorables, des contraintes de rentabilité qui interdisent d’améliorer le sort du personnel, des salariés qui préfèrent mettre fin à leurs jours plutôt que d’endurer leur activité professionnelle ? Il fallait réagir. C’est chose faite grâce à une initiative de la DRH du Centre hospitalier universiaire de Toulouse : des séances de rigologie, cette « approche globale permettant une harmonie entre le corps, l’esprit et les émotions ».</div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</li>\n" +
+                "<li class=\"seul\">\n" +
+                "<h3><a href='033b8fb81a19f90aba4bf45fbac1ab2a.xhtml'>Les livres du mois</a></h3>\n" +
+                "</li>\n" +
+                "<li class=\"dossiers liste\">\n" +
+                "<div class=\"dossier supp\">\n" +
+                "<ul class=\"hermetique\">\n" +
+                "<li class=\"une\">\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60070\">\n" +
+                "<h3><span class=\"pretitre\">Supplément</span> <a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml'>La santé pour tous, un défi planétaire</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• page I</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">L’Afrique demeure, de loin, le continent le plus touché par les trois pandémies les plus meurtrières : le sida, le paludisme et la tuberculose. Frein au développement, celles-ci frappent en priorité les populations pauvres dans des pays où les systèmes de santé ont été affaiblis par les politiques néolibérales des années 1990. Leur élimination d’ici à 2030 figure parmi les Objectifs de développement durable adoptés par les Nations unies, avec une attention particulière accordée à la santé des jeunes et des femmes. L’aide internationale ne doit pas faiblir.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60071\">\n" +
+                "<h3><a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml#ancre60071'>Abidjan se mobilise contre le sida</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Christelle Gérand <span class=\"pages\">• pages I, II et III</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">Dans ce pays, le sida provoque 24 000 morts par an, selon l’Onusida. Le gouvernement affiche sa volonté d’éradiquer le sida à l’horizon 2030 dans le cadre de la poursuite des Objectifs de développement durable (ODD). Cependant, les autorités et les associations locales rencontrent des difficultés à toucher les populations concernées.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60060\">\n" +
+                "<h3><a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml#ancre60060'>Comment réussir la transition démographique au Sahel</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Aïssa Diarra <span class=\"pages\">• pages II et III</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">L’autonomie des adolescentes est devenue un objectif prioritaire de santé publique au Sahel. Considéré comme une des clés du développement, le contrôle de la fécondité implique l’amélioration de la condition matérielle des femmes et leur émancipation de certaines normes socioculturelles dans une région ravagée par les inégalités et la pauvreté.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60059\">\n" +
+                "<h3><a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml#ancre60059'>Le Bénin en pointe contre la tuberculose</a></h3>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Khadija Sylva <span class=\"pages\">• page IV</span></div>\n" +
+                "</div>\n" +
+                "<div class=\"intro\">Dès 1983, le Bénin a lancé des traitements courts dans le cadre de la relance du programme national de lutte contre la tuberculose. Le pays s’inscrit depuis dans une politique d’éradication de la maladie. Pourtant, malgré ces efforts, le nombre de personnes infectées a augmenté de 12 % entre 2017 et 2018, pour atteindre quatre mille cas.</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60062\">\n" +
+                "<h4><a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml#ancre60062'>Vers un accès universel aux soins</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Peter Sands <span class=\"et\">&amp;</span> Stéphanie Seydoux <span class=\"pages\">• page I</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60061\">\n" +
+                "<h4><a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml#ancre60061'>Pour une Afrique égalitaire</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\">Monica Geingos <span class=\"pages\">• page IV</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li>\n" +
+                "<div class=\"titraille\">\n" +
+                "<div class=\"crayon article-titre-60083\">\n" +
+                "<h4><a href='bb95cec6daa0b8be78efe9be7a8d7c07.xhtml#ancre60083'>Pauvre et femme : la double peine</a></h4>\n" +
+                "</div>\n" +
+                "<div class=\"dates_auteurs\"><span class=\"pages\">• pages II et III</span> <span class=\"pages\">•  Cartographie</span></div>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "</ul>\n" +
+                "</div>\n" +
+                "</li>\n" +
+                "<li><a href='49e6e3fa3288239e59067144fa0968f1.xhtml' style=\"display:none;\"></a></li>\n" +
+                "</ul>\n" +
+                "<div class=\"encadre notes\">Les pages mentionnées dans ce sommaire sont celles de la version imprimée</div>\n" +
+                "</div>\n" +
+                "</div>\n" +
+                "</body>\n" +
+                "</html>";
+        assertEquals(expectedSecondPage,secondPage.get());
+    }
+
+
+    @Test
+    public void lmdLoadFomTableOfContent() throws IOException {
+        String currentPage = "c-f2bd7cf3d027096262aa9aec81e1bd9e";
+        String expectedPage = "da1b86bd0419ac8fd575cb9eb7f65131.xhtml";
+        Path lmd = Paths.get("./src/test/resources/books/Juillet 2019.epub");
+        EBook eBook = EBookFactory.createEBook(lmd);
+        eBook.getFirstPage();
+        eBook.getNextPage();
+        Optional<String> expected = eBook.loadPage(expectedPage);
+        assertTrue(expected.isPresent());
+    }
+
+    @Test
+    public void lmdLoadFomTableOfContentWithAnchor() throws IOException {
+        String currentPage = "c-f2bd7cf3d027096262aa9aec81e1bd9e";
+        String expectedPage = "75a00c40dfda91e1354b47e333c95d73.xhtml#ancre60084";
+        Path lmd = Paths.get("./src/test/resources/books/Juillet 2019.epub");
+        EBook eBook = EBookFactory.createEBook(lmd);
+        eBook.getFirstPage();
+        eBook.getNextPage();
+        Optional<String> expected = eBook.loadPage(expectedPage);
+        assertTrue(expected.isPresent());
+    }
+
+
+
+    @Test
+    public void saskiadLoadFomTableOfContent() throws IOException {
+        String currentPage = "toc";
+        String expectedPage = "e9782919755394_c04.html";
+        Path lmd = Paths.get("./src/test/resources/books/Livre de Saskia, Le 2 - Pavlenko, Marie.epub");
+        EBook eBook = EBookFactory.createEBook(lmd);
+        eBook.getFirstPage();
+        eBook.getNextPage();
+        eBook.getNextPage();
+        Optional<String> expected = eBook.loadPage(expectedPage);
+        assertTrue(expected.isPresent());
     }
 
 }

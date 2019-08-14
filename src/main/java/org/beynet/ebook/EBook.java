@@ -75,6 +75,13 @@ public interface EBook {
      */
     Optional<String> getNextPage() ;
 
+    Optional<String> getCurrentPage();
+
+    Optional<String> getFirstPage();
+
+    Optional<String> loadPage(String expectedPage);
+
+
     /**
      * @return the ebook previous page
      */

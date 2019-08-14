@@ -156,15 +156,18 @@ public class EBookMain {
     }
 
     private static void displayEbook() {
-        if (!target.isOptionFound()) throw new IllegalArgumentException("target expected");
-        EBookGUI.main(Paths.get(target.getValue()));
+        if (target.isOptionFound()) {
+            EBookGUI.main(Paths.get(target.getValue()));
+        }
+        else {
+            EBookGUI.main(null);
+        }
     }
 
     public static void main(String[] args ) throws IOException {
         Configurator.initialize(new DefaultConfiguration());
         Configurator.setRootLevel(Level.DEBUG);
         analyser.analyseCommandLine(args);
-
         if (sort.isOptionFound()) {
             sort();
         }
@@ -184,7 +187,7 @@ public class EBookMain {
             displayEbook();
         }
         else {
-            printHelp();
+            displayEbook();
         }
     }
 }

@@ -8,6 +8,7 @@ import org.beynet.ebook.EBookUtils;
 import org.beynet.ebook.epub.oasis.container.Container;
 import org.beynet.ebook.epub.oasis.container.RootFile;
 import org.beynet.ebook.epub.opf.Item;
+import org.beynet.ebook.epub.opf.ItemRef;
 import org.beynet.ebook.epub.opf.Package;
 
 import javax.xml.bind.JAXBContext;
@@ -34,6 +35,14 @@ public class EPub extends AbstractEBook implements EBook {
     }
 
 
+    @Override
+    protected Optional<String> getIdentifier() {
+        Optional<String> result = Optional.empty();
+        if (packageDoc.getMetadata().getIdentifier()!=null && !"".equals(packageDoc.getMetadata().getIdentifier().getValue())) {
+            result = Optional.of(packageDoc.getMetadata().getIdentifier().getValue()).map(s->toFileName(s));
+        }
+        return result;
+    }
 
     private void checkIsWithDRM(FileSystem fs) throws IOException {
         Path encryptionFile = fs.getPath("META-INF","encryption.xml");
@@ -165,56 +174,102 @@ public class EPub extends AbstractEBook implements EBook {
         return isProtected;
     }
 
+
+    @Override
+    public Optional<String> getCurrentPage(){
+        if (!currentItem.isPresent()) {
+            currentItem=loadSavedCurrentPage();
+        }
+        return readCurrentItem();
+    }
+
+    @Override
+    public Optional<String> loadPage(String expectedPage) {
+        final String page ;
+        if (expectedPage.contains("#")) {
+            page=expectedPage.substring(0,expectedPage.indexOf("#"));
+        }
+        else {
+            page=expectedPage;
+        }
+        Optional<Path> expectedPath = currentItem.map(id->{
+            for (Item item : packageDoc.getManifest().getItems()) {
+                if (id.equals(item.getId())) {
+                    return Paths.get(item.getHref());
+                }
+            }
+            return null;
+        }).map(p->p.getParent()).map(p->p.resolve(page));
+
+        currentItem = Optional.empty();
+        for (Item item : packageDoc.getManifest().getItems()) {
+
+            expectedPath.ifPresentOrElse(
+                    expected -> {
+                        Path itemPath = Paths.get(item.getHref());
+                        if (itemPath.equals(expected)) {
+                            currentItem=Optional.of(item.getId());
+                        }
+                    }
+                    ,
+                    () -> {
+                        if (expectedPage.equals(item.getHref())) {
+                            currentItem=Optional.of(item.getId());
+                        }
+                    }
+            );
+            if (currentItem.isPresent()) break;
+
+        }
+        return readCurrentItem();
+    }
+
+    @Override
+    public Optional<String> getFirstPage() {
+        currentItem = Optional.empty();
+        return getNextPage();
+    }
+
     @Override
     public Optional<String> getNextPage() {
-        List<Item> items = packageDoc.getManifest().getItems();
+        List<ItemRef> itemRefs = packageDoc.getSpine().getItemRefs();
 
         currentItem.ifPresentOrElse(
                 // search the next page
                 curr-> {
                     boolean currentPageReached = false ;
-                    for (Item item : items) {
-                        if (curr.equals(item)) {
+                    for (ItemRef itemRef : itemRefs) {
+                        if (curr.equals(itemRef.getIdref())) {
                             currentPageReached = true ;
                             currentItem = Optional.empty();
                             continue;
                         }
-                        if (item!=null && currentPageReached==true && XHTML.equals(item.getMediaType())) {
-                            currentItem = Optional.of(item);
+                        if (currentPageReached==true) {
+                            currentItem = Optional.of(itemRef.getIdref());
                             break;
                         }
                     }
                 },
                 // go to first page
                 ()->{
-                    if (items.size()>0) {
-                        for (Item item : items) {
-                            if (XHTML.equals(item.getMediaType())) {
-                                currentItem = Optional.ofNullable(item);
-                                break;
-                            }
-                        }
-                    }
+                    currentItem=Optional.ofNullable(itemRefs.get(0).getIdref());
                 }
         );
-
         return readCurrentItem();
     }
 
 
     @Override
     public Optional<String> getPreviousPage() {
-        List<Item> items = packageDoc.getManifest().getItems();
+        List<ItemRef> itemRefs = packageDoc.getSpine().getItemRefs();
 
         currentItem.ifPresent(curr->{
             currentItem = Optional.empty();
-            for (Item item : items) {
-                if (curr.equals(item)) {
+            for (ItemRef itemRef : itemRefs) {
+                if (curr.equals(itemRef.getIdref())) {
                     break;
                 }
-                if (item!=null && XHTML.equals(item.getMediaType())) {
-                    currentItem = Optional.of(item);
-                }
+                currentItem = Optional.of(itemRef.getIdref());
             }
         });
 
@@ -226,27 +281,41 @@ public class EPub extends AbstractEBook implements EBook {
         List<Item> items = packageDoc.getManifest().getItems();
         for (Item item : items) {
             if (item!=null && CSS.equals(item.getMediaType())) {
-                return readItem(Optional.of(item));
+                return readItem(Optional.of(item.getId()));
             }
         }
         return Optional.empty();
     }
 
     private Optional<String> readCurrentItem() {
+        currentItem.ifPresent(item->{
+            saveCurrentPage(item);
+        });
         return readItem(currentItem);
     }
 
 
-    private Optional<String> readItem(Optional<Item> optItem) {
-        return optItem.map(item -> {
+    private Optional<String> readItem(Optional<String> optItem) {
+        return optItem.map(s->{
+            for (Item item : packageDoc.getManifest().getItems()) {
+                if (s.equals(item.getId())) return item;
+            }
+            return null;
+        }).map(item -> {
             try (FileSystem fs = getFileSystem()) {
                 Path packageDirectory = fs.getPath(packageDocPath).getParent();
-                Path itemPath = packageDirectory.resolve(item.getHref());
+                Path itemPath;
+                if (packageDirectory!=null) {
+                    itemPath = packageDirectory.resolve(item.getHref());
+                }
+                else {
+                    itemPath = fs.getPath(item.getHref());
+                }
                 byte[] bytes = Files.readAllBytes(itemPath);
                 return new String(bytes, "UTF-8");
             } catch (IOException e) {
-                logger.error("");
-                return "";
+                logger.error("unable to read section",e);
+                return null;
             }
         });
     }
@@ -271,7 +340,7 @@ public class EPub extends AbstractEBook implements EBook {
     private List<String>     subjects;
     private Package          packageDoc;
     private String           packageDocPath;
-    private Optional<Item>   currentItem ;
+    private Optional<String> currentItem ;
 
     private final static String XHTML="application/xhtml+xml";
     private final static String CSS="text/css";
