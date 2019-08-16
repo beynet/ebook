@@ -81,6 +81,19 @@ public interface EBook {
 
     Optional<String> loadPage(String expectedPage);
 
+    /**
+     * save current page
+     * @param page
+     */
+    void saveCurrentPage(String page);
+
+    Optional<String> loadSavedCurrentPage() ;
+
+    void saveCurrentZoom(double zoom);
+    Optional<Double> loadSavedCurrentZoom();
+
+    void saveNightMode(boolean nightMode);
+    Optional<Boolean> loadSavedNightMode();
 
     /**
      * @return the ebook previous page

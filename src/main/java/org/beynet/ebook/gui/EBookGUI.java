@@ -7,11 +7,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EBookFactory;
+import org.beynet.ebook.EBookUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -26,30 +28,91 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
+import javax.swing.text.html.Option;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.Properties;
 
 public class EBookGUI extends Application {
     private final static Logger logger = LogManager.getLogger(EBookGUI.class);
     private Scene currentScene;
     private Stage currentStage;
 
-    private WebView ebookView    ;
-    private EBook   currentEBook ;
+    private WebView           ebookView    ;
+    private Optional<EBook>   currentEBook ;
+    private boolean nightMode=false ;
+    private final static String CONF_FILE_NAME ="ebooks.ini";
+    private final static String CURRENT_EBOOK_PATH ="CurrentEbookPath";
+    private Properties properties = null;
+    private Path propertyFilePath = null ;
 
     public static void main(Path eBookPath) {
         if (eBookPath!=null) launch(eBookPath.toString());
         else launch();
     }
 
+
+    protected Properties getProperties() {
+        synchronized (this) {
+            if (this.properties == null) {
+                this.propertyFilePath = EBookUtils.getTargetDirectory().resolve(Paths.get(CONF_FILE_NAME));
+                this.properties = new Properties();
+                if (Files.exists(this.propertyFilePath)) {
+                    try (InputStream is = Files.newInputStream(this.propertyFilePath)) {
+                        this.properties.load(is);
+                    } catch (IOException e) {
+                        logger.error("unable to load file ", e);
+                    }
+                }
+            }
+        }
+        return this.properties;
+    }
+
+    private void saveCurrenEbook() {
+        currentEBook.ifPresent(e->getProperties().put(CURRENT_EBOOK_PATH,e.getPath().toString()));
+        saveProperties();
+    }
+
+    private void loadCurrentEbook() {
+        this.currentEBook=Optional.ofNullable(getProperties().getProperty(CURRENT_EBOOK_PATH)).map(p->{
+            try {
+                return EBookFactory.createEBook(Paths.get(p));
+            } catch (IOException e) {
+                logger.error("unable to load ebook",e);
+                return null;
+            }
+        });
+    }
+
+    protected void saveProperties() {
+        synchronized (this) {
+            getProperties();
+            try (OutputStream os = Files.newOutputStream(this.propertyFilePath)){
+                properties.store(os, null);
+            } catch (IOException e) {
+                logger.error("unable to save property file",e);
+            }
+        }
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
+
         this.currentStage = stage ;
         Parameters parameters = getParameters();
         if (!parameters.getRaw().isEmpty()) {
-            currentEBook = EBookFactory.createEBook(Paths.get(parameters.getRaw().get(0)));
+            currentEBook = Optional.of(EBookFactory.createEBook(Paths.get(parameters.getRaw().get(0))));
+            saveCurrenEbook();
+        }
+        else {
+            loadCurrentEbook();
         }
         Group group = new Group();
 
@@ -65,31 +128,44 @@ public class EBookGUI extends Application {
         Button nextPage = new Button("next");
         nextPage.setTooltip(new Tooltip("next"));
         nextPage.setOnAction(event -> {
-            ebookView.getEngine().loadContent(currentEBook.getNextPage().orElse(""));
+            currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.getNextPage().orElse("")));
         });
 
         Button previousPage = new Button("previous");
         previousPage.setTooltip(new Tooltip("previous"));
         previousPage.setOnAction(event -> {
-            ebookView.getEngine().loadContent(currentEBook.getPreviousPage().orElse(""));
+            currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.getPreviousPage().orElse("")));
         });
 
         Button plus = new Button("+");
         plus.setTooltip(new Tooltip("+"));
         plus.setOnAction(event -> {
             ebookView.setZoom(ebookView.getZoom()+0.1);
+            currentEBook.ifPresent(e->e.saveCurrentZoom(ebookView.getZoom()));
         });
 
         Button minus = new Button("-");
         minus.setTooltip(new Tooltip("-"));
         minus.setOnAction(event -> {
             ebookView.setZoom(ebookView.getZoom()-0.1);
+            currentEBook.ifPresent(e->e.saveCurrentZoom(ebookView.getZoom()));
         });
 
         Button openEBook = new Button("open");
 
+        Button nightModeButton = new Button("night");
+        nightModeButton.setOnAction(event->{
+            this.nightMode = !this.nightMode;
+            if (this.nightMode==true) {
+                ebookView.getEngine().executeScript("document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
+            }
+            else {
+                ebookView.getEngine().executeScript("document.body.style.backgroundColor = null;\ndocument.body.style.color = null;");
+            }
+            currentEBook.ifPresent(e->e.saveNightMode(nightMode));
+        });
 
-        htop.getChildren().addAll(previousPage,nextPage,minus,plus,openEBook);
+        htop.getChildren().addAll(previousPage,nextPage,minus,plus,openEBook,nightModeButton);
 
         mainVBOX.getChildren().add(htop);
 
@@ -121,7 +197,7 @@ public class EBookGUI extends Application {
                             if ("click".equals(ev.getType())) {
                                 String href = ((Element)ev.getCurrentTarget()).getAttribute("href");
                                 if (href==null) return;
-                                Platform.runLater(()->ebookView.getEngine().loadContent(currentEBook.loadPage(href).orElse("")));
+                                Platform.runLater(()->currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.loadPage(href).orElse(""))));
                             }
                         }
                     };
@@ -130,6 +206,9 @@ public class EBookGUI extends Application {
                     NodeList nodeList = doc.getElementsByTagName("a");
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         ((EventTarget) nodeList.item(i)).addEventListener("click", listener, true);
+                    }
+                    if (nightMode==true) {
+                        ebookView.getEngine().executeScript("document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
                     }
                 }
             }
@@ -142,7 +221,8 @@ public class EBookGUI extends Application {
                 Path path = result.toPath();
                 EBook eBook = EBookFactory.createEBook(path);
                 Platform.runLater(()->{
-                    this.currentEBook = eBook;
+                    this.currentEBook = Optional.of(eBook);
+                    saveCurrenEbook();
                     loadEBook();
                 });
             } catch(Exception e) {
@@ -159,10 +239,13 @@ public class EBookGUI extends Application {
     }
 
     private void loadEBook() {
-        if (currentEBook!=null) {
-            ebookView.getEngine().setUserStyleSheetLocation(currentEBook.getDefaultCSS().map(s -> "data:,".concat(s)).orElse("data:,"));
-            Optional<String> page = currentEBook.getCurrentPage().or(() -> currentEBook.getFirstPage());
-            ebookView.getEngine().loadContent(page.get());
-        }
+        currentEBook.ifPresent(e->{
+            WebEngine engine = ebookView.getEngine();
+            engine.setUserStyleSheetLocation(e.getDefaultCSS().map(s -> "data:,".concat(s)).orElse("data:,"));
+            Optional<String> page = e.getCurrentPage().or(() -> e.getFirstPage());
+            nightMode = e.loadSavedNightMode().orElse(Boolean.FALSE).booleanValue();
+            ebookView.setZoom(e.loadSavedCurrentZoom().orElse(Double.valueOf(1.0)));
+            engine.loadContent(page.get());
+        });
     }
 }

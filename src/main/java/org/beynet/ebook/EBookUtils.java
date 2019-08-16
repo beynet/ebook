@@ -11,6 +11,17 @@ public class EBookUtils {
 
     private final static Logger logger = LogManager.getLogger(EBookUtils.class);
 
+
+    public static Path getTargetDirectory() {
+        final Path userHome = Paths.get((String) System.getProperty("user.home"));
+        return userHome.resolve(Paths.get(".ebook"));
+    }
+
+    public static void createConfDirectory() throws IOException {
+        final Path targetDirectory = getTargetDirectory();
+        if (!Files.exists(targetDirectory)) Files.createDirectories(targetDirectory);
+    }
+
     /**
      * copy all ebooks found in source to target
      * @param source
