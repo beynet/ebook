@@ -1649,6 +1649,30 @@ public class EPubTest extends AbstractTests {
         assertTrue(expected.isPresent());
     }
 
+    @Test
+    public void lmdLoadRessourceLocal1() throws IOException {
+        Path lmd = Paths.get("./src/test/resources/books/Juillet 2019.epub").toAbsolutePath();
+        String expectedURI = "jar:"+lmd.toUri().toString()+"!/cover.jpg";
+        EBook eBook = EBookFactory.createEBook(lmd);
+        eBook.getFirstPage();
+        Optional<String> found = eBook.convertRessourceLocalPathToGlobalURL("cover.jpg");
+        assertEquals(expectedURI,found.get());
+    }
+
+    @Test
+    public void lmdLoadRessourceLocal2() throws IOException {
+        Path lmd = Paths.get("./src/test/resources/books/Juillet 2019.epub").toAbsolutePath();
+        String expectedURI = "jar:"+lmd.toUri().toString()+"!/pages/../images/img023-10-7febf5.jpg";
+        EBook eBook = EBookFactory.createEBook(lmd);
+        eBook.getFirstPage();
+        eBook.getNextPage();
+        eBook.getNextPage();
+        eBook.getNextPage();
+        Optional<String> found = eBook.convertRessourceLocalPathToGlobalURL("../images/img023-10-7febf5.jpg");
+        assertEquals(expectedURI,found.get());
+    }
+
+
 
 
     @Test

@@ -126,7 +126,8 @@ public class EPub extends AbstractEBook implements EBook {
 
 
     private FileSystem getFileSystem() throws IOException {
-        Map<String,?> env = new HashMap<>();
+        Map<String,String> env = new HashMap<>();
+        env.put("encoding","UTF-8");
         URI uri = URI.create("jar:"+getPath().toUri().toString());
         return FileSystems.newFileSystem(uri, env);
     }
@@ -184,30 +185,47 @@ public class EPub extends AbstractEBook implements EBook {
     }
 
     @Override
-    public Optional<String> loadPage(String expectedPage) {
+    public Optional<String> convertRessourceLocalPathToGlobalURL(String localPath) {
+        logger.info("converting localPath "+localPath);
+        return convertRessourceLocalPathToGlobalPath(localPath).or(()->Optional.of(localPath)).map(p->{
+            try (FileSystem fs = getFileSystem()) {
+                Path itemPath=fs.getPath(p);
+                return itemPath.toUri().toString();
+            } catch (IOException e) {
+                logger.error("unable to read section",e);
+                return null;
+            }
+        });
+    }
+
+    protected Optional<String> convertRessourceLocalPathToGlobalPath(String localPath) {
         final String page ;
-        if (expectedPage.contains("#")) {
-            page=expectedPage.substring(0,expectedPage.indexOf("#"));
+        if (localPath.contains("#")) {
+            page=localPath.substring(0,localPath.indexOf("#"));
         }
         else {
-            page=expectedPage;
+            page=localPath;
         }
-        Optional<Path> expectedPath = currentItem.map(id->{
+        return currentItem.map(id->{
             for (Item item : packageDoc.getManifest().getItems()) {
                 if (id.equals(item.getId())) {
                     return Paths.get(item.getHref());
                 }
             }
             return null;
-        }).map(p->p.getParent()).map(p->p.resolve(page));
+        }).map(p->p.getParent()).map(p->p.resolve(page).toString());
+    }
+
+    @Override
+    public Optional<String> loadPage(String expectedPage) {
+        Optional<String> expectedPath = convertRessourceLocalPathToGlobalPath(expectedPage);
 
         currentItem = Optional.empty();
         for (Item item : packageDoc.getManifest().getItems()) {
 
             expectedPath.ifPresentOrElse(
                     expected -> {
-                        Path itemPath = Paths.get(item.getHref());
-                        if (itemPath.equals(expected)) {
+                        if (expected.equals(item.getHref()))  {
                             currentItem=Optional.of(item.getId());
                         }
                     }
@@ -311,6 +329,7 @@ public class EPub extends AbstractEBook implements EBook {
                 else {
                     itemPath = fs.getPath(item.getHref());
                 }
+                //return itemPath.toUri().toString();
                 byte[] bytes = Files.readAllBytes(itemPath);
                 return new String(bytes, "UTF-8");
             } catch (IOException e) {

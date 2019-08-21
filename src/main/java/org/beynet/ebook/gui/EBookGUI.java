@@ -11,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
@@ -23,16 +22,17 @@ import org.beynet.ebook.EBookFactory;
 import org.beynet.ebook.EBookUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
-import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -125,6 +125,12 @@ public class EBookGUI extends Application {
 
         // next button and previous button in the top
         HBox htop = new HBox();
+        Button firstPage = new Button("first page");
+        firstPage.setTooltip(new Tooltip("first page"));
+        firstPage.setOnAction(event -> {
+            currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.getFirstPage().orElse("")));
+        });
+
         Button nextPage = new Button("next");
         nextPage.setTooltip(new Tooltip("next"));
         nextPage.setOnAction(event -> {
@@ -165,7 +171,7 @@ public class EBookGUI extends Application {
             currentEBook.ifPresent(e->e.saveNightMode(nightMode));
         });
 
-        htop.getChildren().addAll(previousPage,nextPage,minus,plus,openEBook,nightModeButton);
+        htop.getChildren().addAll(firstPage,previousPage,nextPage,minus,plus,openEBook,nightModeButton);
 
         mainVBOX.getChildren().add(htop);
 
@@ -187,10 +193,29 @@ public class EBookGUI extends Application {
         ebookView.prefWidthProperty().bind(pane.widthProperty());
 
 
+        ebookView.getEngine().documentProperty().addListener((observableValue, document, t1) -> {
+            if (document==null) return;
+            NodeList headList = document.getElementsByTagName("head");
+            Element head ;
+            if (headList.getLength()>0) {
+                head = (Element) headList.item(0);
+            }
+            else {
+                head = document.createElement("head");
+                document.getDocumentElement().appendChild(head);
+            }
+            Element meta = document.createElement("meta");
+            meta.setAttribute("charset","UTF-8");
+            head.appendChild(meta);
+        });
+
         ebookView.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<Worker.State>() {
             @Override
             public void changed(ObservableValue ov, Worker.State oldState, Worker.State newState) {
-                if (newState == Worker.State.SUCCEEDED) {
+                if (Worker.State.SCHEDULED==newState) {
+                    logger.info("new state = schedule");
+                }
+                else if (newState == Worker.State.SUCCEEDED) {
                     EventListener listener = new EventListener() {
                         @Override
                         public void handleEvent(Event ev) {
@@ -207,9 +232,17 @@ public class EBookGUI extends Application {
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         ((EventTarget) nodeList.item(i)).addEventListener("click", listener, true);
                     }
+                    nodeList = doc.getElementsByTagName("img");
+                    for (int i = 0; i < nodeList.getLength(); i++) {
+                        Element img = (Element) nodeList.item(i);
+                        String href = img.getAttribute("src");
+
+                        currentEBook.map(e -> e.convertRessourceLocalPathToGlobalURL(href).orElse(null)).ifPresent(s->img.setAttribute("src",s));
+                    }
                     if (nightMode==true) {
                         ebookView.getEngine().executeScript("document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
                     }
+                    ebookView.getEngine().executeScript("document.charset = \"UTF-8\"");
                 }
             }
         });
@@ -246,6 +279,7 @@ public class EBookGUI extends Application {
             nightMode = e.loadSavedNightMode().orElse(Boolean.FALSE).booleanValue();
             ebookView.setZoom(e.loadSavedCurrentZoom().orElse(Double.valueOf(1.0)));
             engine.loadContent(page.get());
+            //engine.loadContent(e.getPath().toUri().toString());
         });
     }
 }

@@ -64,6 +64,11 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
     }
 
     @Override
+    public Optional<String> convertRessourceLocalPathToGlobalURL(String localPath) {
+        throw new UnsupportedOperationException("unable to read this ebook");
+    }
+
+    @Override
     public Optional<String> getDefaultCSS() {
         throw new UnsupportedOperationException("unable to read this ebook");
     }

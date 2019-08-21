@@ -81,6 +81,8 @@ public interface EBook {
 
     Optional<String> loadPage(String expectedPage);
 
+    Optional<String> convertRessourceLocalPathToGlobalURL(String localPath);
+
     /**
      * save current page
      * @param page
