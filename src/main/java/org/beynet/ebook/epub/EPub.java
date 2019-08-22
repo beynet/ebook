@@ -218,14 +218,14 @@ public class EPub extends AbstractEBook implements EBook {
 
     @Override
     public Optional<String> loadPage(String expectedPage) {
-        Optional<String> expectedPath = convertRessourceLocalPathToGlobalPath(expectedPage);
+        Optional<Path> expectedPath = convertRessourceLocalPathToGlobalPath(expectedPage).map(s->Paths.get(s));
 
         currentItem = Optional.empty();
         for (Item item : packageDoc.getManifest().getItems()) {
 
             expectedPath.ifPresentOrElse(
                     expected -> {
-                        if (expected.equals(item.getHref()))  {
+                        if (expected.equals(Paths.get(item.getHref())))  {
                             currentItem=Optional.of(item.getId());
                         }
                     }
