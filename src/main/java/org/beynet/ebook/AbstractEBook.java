@@ -19,21 +19,25 @@ public abstract class AbstractEBook implements EBook {
         if (!Files.exists(this.path)) throw new IOException("File not found "+path.toString());
         EBookUtils.createConfDirectory();
         this.properties = null ;
+        this.propertyFilePath = Optional.empty();
     }
 
     protected Properties getProperties() {
         synchronized (this) {
             if (this.properties == null) {
+                this.properties = new Properties();
                 getIdentifier().ifPresentOrElse(id ->{
-                    this.propertyFilePath = EBookUtils.getTargetDirectory().resolve(Paths.get(id+".ini"));
-                    this.properties = new Properties();
-                    if (Files.exists(this.propertyFilePath)) {
-                        try (InputStream is = Files.newInputStream(this.propertyFilePath)) {
-                            this.properties.load(is);
-                        } catch (IOException e) {
-                            logger.error("unable to load file ", e);
+                    id = toFileName(id);
+                    this.propertyFilePath = Optional.ofNullable(EBookUtils.getTargetDirectory().resolve(Paths.get(id+".ini")));
+                    this.propertyFilePath.ifPresent(path-> {
+                        if (Files.exists(path)) {
+                            try (InputStream is = Files.newInputStream(path)) {
+                                this.properties.load(is);
+                            } catch (IOException e) {
+                                logger.error("unable to load file ", e);
+                            }
                         }
-                    }
+                    });
                 },
                         ()->{
                             logger.error("current ebook has no identifier"+getPath().toString());
@@ -48,11 +52,13 @@ public abstract class AbstractEBook implements EBook {
     protected void saveProperties() {
         synchronized (this) {
             getProperties();
-            try (OutputStream os = Files.newOutputStream(this.propertyFilePath)){
-                properties.store(os, null);
-            } catch (IOException e) {
-                logger.error("unable to save property file",e);
-            }
+            this.propertyFilePath.ifPresent(path-> {
+                try (OutputStream os = Files.newOutputStream(path)) {
+                    properties.store(os, null);
+                } catch (IOException e) {
+                    logger.error("unable to save property file", e);
+                }
+            });
         }
     }
 
@@ -87,8 +93,6 @@ public abstract class AbstractEBook implements EBook {
     public Optional<Boolean> loadSavedNightMode() {
         return Optional.ofNullable(getProperties().getProperty(NIGHT_MODE)).map(n->Boolean.valueOf(n));
     }
-
-    protected abstract Optional<String> getIdentifier() ;
 
 
     protected String toFileName(String p) {
@@ -163,7 +167,7 @@ public abstract class AbstractEBook implements EBook {
 
     private Path       path            ;
     private Properties properties      ;
-    private Path       propertyFilePath;
+    private Optional<Path>       propertyFilePath;
     private final static Logger logger = LogManager.getLogger(AbstractEBook.class);
     private final static String CURRENT_PAGE = "currentPage";
     private final static String  ZOOM = "zoom";

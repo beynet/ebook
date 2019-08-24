@@ -59,6 +59,11 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
     }
 
     @Override
+    public Optional<String> getIdentifier() {
+        throw new UnsupportedOperationException("unable to read this ebook");
+    }
+
+    @Override
     public Optional<String> loadPage(String expectedPage) {
         throw new UnsupportedOperationException("unable to read this ebook");
     }
@@ -70,11 +75,6 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
 
     @Override
     public Optional<String> getDefaultCSS() {
-        throw new UnsupportedOperationException("unable to read this ebook");
-    }
-
-    @Override
-    protected Optional<String> getIdentifier() {
         throw new UnsupportedOperationException("unable to read this ebook");
     }
 

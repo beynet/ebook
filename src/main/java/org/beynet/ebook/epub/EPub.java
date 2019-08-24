@@ -7,6 +7,7 @@ import org.beynet.ebook.EBook;
 import org.beynet.ebook.EBookUtils;
 import org.beynet.ebook.epub.oasis.container.Container;
 import org.beynet.ebook.epub.oasis.container.RootFile;
+import org.beynet.ebook.epub.opf.Identifier;
 import org.beynet.ebook.epub.opf.Item;
 import org.beynet.ebook.epub.opf.ItemRef;
 import org.beynet.ebook.epub.opf.Package;
@@ -36,10 +37,15 @@ public class EPub extends AbstractEBook implements EBook {
 
 
     @Override
-    protected Optional<String> getIdentifier() {
+    public Optional<String> getIdentifier() {
         Optional<String> result = Optional.empty();
-        if (packageDoc.getMetadata().getIdentifier()!=null && !"".equals(packageDoc.getMetadata().getIdentifier().getValue())) {
-            result = Optional.of(packageDoc.getMetadata().getIdentifier().getValue()).map(s->toFileName(s));
+        for (Identifier identifier : packageDoc.getMetadata().getIdentifier()) {
+            // return first identifier with content not null
+            if (identifier.getValue()!=null) {
+                if (result.isEmpty() || ( identifier.getValue().contains("uid") && !result.get().contains("uid")) ) {
+                    result = Optional.of(identifier.getValue());
+                }
+            }
         }
         return result;
     }
@@ -189,7 +195,14 @@ public class EPub extends AbstractEBook implements EBook {
         logger.info("converting localPath "+localPath);
         return convertRessourceLocalPathToGlobalPath(localPath).or(()->Optional.of(localPath)).map(p->{
             try (FileSystem fs = getFileSystem()) {
-                Path itemPath=fs.getPath(p);
+                Path packageDirectory = fs.getPath(packageDocPath).getParent();
+                Path itemPath;
+                if (packageDirectory!=null) {
+                    itemPath = packageDirectory.resolve(p);
+                }
+                else {
+                    itemPath = fs.getPath(p);
+                }
                 return itemPath.toUri().toString();
             } catch (IOException e) {
                 logger.error("unable to read section",e);

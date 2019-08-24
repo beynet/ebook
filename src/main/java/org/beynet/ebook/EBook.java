@@ -102,10 +102,13 @@ public interface EBook {
      */
     Optional<String> getPreviousPage() ;
 
+    Optional<String> getIdentifier() ;
+
     Optional<String> getDefaultCSS();
 
     String UNDEFINED_AUTHOR="undefined";
     String UNDEFINED_TITLE="undefined title";
+    String UNDEFINED_ID   ="undefined id";
     String UNDEFINED_SUBJECT="undefined subject";
 }
 

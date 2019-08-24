@@ -22,7 +22,6 @@ import org.beynet.ebook.EBookFactory;
 import org.beynet.ebook.EBookUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
@@ -32,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,6 +39,7 @@ import java.util.Properties;
 
 public class EBookGUI extends Application {
     private final static Logger logger = LogManager.getLogger(EBookGUI.class);
+    public static final String CLICK = "click";
     private Scene currentScene;
     private Stage currentStage;
 
@@ -212,14 +211,11 @@ public class EBookGUI extends Application {
         ebookView.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<Worker.State>() {
             @Override
             public void changed(ObservableValue ov, Worker.State oldState, Worker.State newState) {
-                if (Worker.State.SCHEDULED==newState) {
-                    logger.info("new state = schedule");
-                }
-                else if (newState == Worker.State.SUCCEEDED) {
+                if (newState == Worker.State.SUCCEEDED) {
                     EventListener listener = new EventListener() {
                         @Override
                         public void handleEvent(Event ev) {
-                            if ("click".equals(ev.getType())) {
+                            if (CLICK.equals(ev.getType())) {
                                 String href = ((Element)ev.getCurrentTarget()).getAttribute("href");
                                 if (href==null) return;
                                 Platform.runLater(()->currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.loadPage(href).orElse(""))));
@@ -230,7 +226,7 @@ public class EBookGUI extends Application {
                     Document doc = ebookView.getEngine().getDocument();
                     NodeList nodeList = doc.getElementsByTagName("a");
                     for (int i = 0; i < nodeList.getLength(); i++) {
-                        ((EventTarget) nodeList.item(i)).addEventListener("click", listener, true);
+                        ((EventTarget) nodeList.item(i)).addEventListener(CLICK, listener, true);
                     }
                     nodeList = doc.getElementsByTagName("img");
                     for (int i = 0; i < nodeList.getLength(); i++) {
@@ -250,16 +246,18 @@ public class EBookGUI extends Application {
         openEBook.setOnAction(event -> {
             FileChooser directoryChooser = new FileChooser();
             File result = directoryChooser.showOpenDialog(currentStage);
-            try {
-                Path path = result.toPath();
-                EBook eBook = EBookFactory.createEBook(path);
-                Platform.runLater(()->{
-                    this.currentEBook = Optional.of(eBook);
-                    saveCurrenEbook();
-                    loadEBook();
-                });
-            } catch(Exception e) {
-                logger.error("unable to load ebook",e);
+            if (result!=null) {
+                try {
+                    Path path = result.toPath();
+                    EBook eBook = EBookFactory.createEBook(path);
+                    Platform.runLater(() -> {
+                        this.currentEBook = Optional.of(eBook);
+                        saveCurrenEbook();
+                        loadEBook();
+                    });
+                } catch (Exception e) {
+                    logger.error("unable to load ebook", e);
+                }
             }
         });
 

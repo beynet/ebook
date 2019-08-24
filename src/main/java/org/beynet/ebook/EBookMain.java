@@ -140,6 +140,8 @@ public class EBookMain {
         EBook eBook = EBookFactory.createEBook(t);
         StringBuilder sb = new StringBuilder();
         sb.append(t.toString());
+        sb.append("\n\tidentifier=");
+        sb.append(eBook.getIdentifier().orElse(EBook.UNDEFINED_ID));
         sb.append("\n\ttitle=");
         sb.append(eBook.getTitle().orElse(EBook.UNDEFINED_TITLE));
         sb.append("\n\tauthor=");

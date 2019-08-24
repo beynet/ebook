@@ -66,11 +66,8 @@ public class Metadata {
     }
 
     @XmlElement(name="identifier",namespace = "http://purl.org/dc/elements/1.1/")
-    public Identifier getIdentifier() {
+    public List<Identifier> getIdentifier() {
         return identifier;
-    }
-    public void setIdentifier(Identifier identifier) {
-        this.identifier = identifier;
     }
 
     @XmlElement(name="language",namespace = "http://purl.org/dc/elements/1.1/")
@@ -94,7 +91,7 @@ public class Metadata {
 
     private String                     title;
     private String                     language;
-    private Identifier                 identifier;
+    private List<Identifier>           identifier=new ArrayList<>();
     private List<Meta>                 metas = new ArrayList<>();
     private List<CreatorOrContributor> creators=new ArrayList<>();
     private List<CreatorOrContributor> contributors=new ArrayList<>();
