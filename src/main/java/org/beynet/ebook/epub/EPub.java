@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.beynet.ebook.AbstractEBook;
 import org.beynet.ebook.EBook;
-import org.beynet.ebook.EBookUtils;
 import org.beynet.ebook.epub.oasis.container.Container;
 import org.beynet.ebook.epub.oasis.container.RootFile;
 import org.beynet.ebook.epub.opf.Identifier;
@@ -39,7 +38,7 @@ public class EPub extends AbstractEBook implements EBook {
     @Override
     public Optional<String> getIdentifier() {
         Optional<String> result = Optional.empty();
-        for (Identifier identifier : packageDoc.getMetadata().getIdentifier()) {
+        for (Identifier identifier : opfDocument.getMetadata().getIdentifiers()) {
             // return first identifier with content not null
             if (identifier.getValue()!=null) {
                 if (result.isEmpty() || ( identifier.getValue().contains("uid") && !result.get().contains("uid")) ) {
@@ -98,18 +97,18 @@ public class EPub extends AbstractEBook implements EBook {
             throw new IOException("no root file found in container");
         }
         RootFile rootFile = container.getRootFiles().getRootFiles().get(0);
-        packageDocPath = rootFile.getFullPath();
+        opfDocumentPath = rootFile.getFullPath();
         try {
-            packageDoc= (Package) unmarshaller.unmarshal(Files.newInputStream(fs.getPath(packageDocPath)));
+            opfDocument = (Package) unmarshaller.unmarshal(Files.newInputStream(fs.getPath(opfDocumentPath)));
         } catch (JAXBException e) {
             throw new IOException("unable to read root package file ",e);
         }
-        title=Optional.ofNullable(packageDoc.getMetadata().getTitle());
+        title=Optional.ofNullable(opfDocument.getMetadata().getTitle());
         subjects = new ArrayList<>();
-        subjects.addAll(packageDoc.getMetadata().getSubjects());
-        packageDoc.getMainCreator().ifPresentOrElse(
+        subjects.addAll(opfDocument.getMetadata().getSubjects());
+        opfDocument.getMainCreator().ifPresentOrElse(
                 a -> author = Optional.of(a.getName()),
-                ()->author = packageDoc.getMetadata().getCreators().stream().findFirst().map(c->c.getName()));
+                ()->author = opfDocument.getMetadata().getCreators().stream().findFirst().map(c->c.getName()));
 
 
     }
@@ -144,10 +143,10 @@ public class EPub extends AbstractEBook implements EBook {
      */
     private void savePackageDocument() throws IOException {
         try (FileSystem fs = getFileSystem()) {
-            Path path = fs.getPath(packageDocPath);
+            Path path = fs.getPath(opfDocumentPath);
             try(OutputStream os = Files.newOutputStream(path,StandardOpenOption.TRUNCATE_EXISTING,StandardOpenOption.CREATE)) {
                 try {
-                    context.createMarshaller().marshal(packageDoc, os);
+                    context.createMarshaller().marshal(opfDocument, os);
                 } catch (JAXBException e) {
                     e.printStackTrace();
                 }
@@ -157,14 +156,14 @@ public class EPub extends AbstractEBook implements EBook {
 
     @Override
     public void updateSubjects() throws IOException {
-        packageDoc.getMetadata().getSubjects().clear();
-        packageDoc.getMetadata().getSubjects().addAll(getSubjects());
+        opfDocument.getMetadata().getSubjects().clear();
+        opfDocument.getMetadata().getSubjects().addAll(getSubjects());
         savePackageDocument();
     }
 
     @Override
     public void changeAuthor(String newName) throws IOException {
-        packageDoc.replaceMainCreator(newName);
+        opfDocument.replaceMainCreator(newName);
         savePackageDocument();
     }
 
@@ -195,7 +194,10 @@ public class EPub extends AbstractEBook implements EBook {
         logger.info("converting localPath "+localPath);
         return convertRessourceLocalPathToGlobalPath(localPath).or(()->Optional.of(localPath)).map(p->{
             try (FileSystem fs = getFileSystem()) {
-                Path packageDirectory = fs.getPath(packageDocPath).getParent();
+                // links, if relative, in current page are relative to current page
+                // current page path is relative to packageDocpath
+                // ----------------------------------------------------------------
+                Path packageDirectory = fs.getPath(opfDocumentPath).getParent();
                 Path itemPath;
                 if (packageDirectory!=null) {
                     itemPath = packageDirectory.resolve(p);
@@ -220,7 +222,7 @@ public class EPub extends AbstractEBook implements EBook {
             page=localPath;
         }
         return currentItem.map(id->{
-            for (Item item : packageDoc.getManifest().getItems()) {
+            for (Item item : opfDocument.getManifest().getItems()) {
                 if (id.equals(item.getId())) {
                     return Paths.get(item.getHref());
                 }
@@ -234,7 +236,7 @@ public class EPub extends AbstractEBook implements EBook {
         Optional<Path> expectedPath = convertRessourceLocalPathToGlobalPath(expectedPage).map(s->Paths.get(s));
 
         currentItem = Optional.empty();
-        for (Item item : packageDoc.getManifest().getItems()) {
+        for (Item item : opfDocument.getManifest().getItems()) {
 
             expectedPath.ifPresentOrElse(
                     expected -> {
@@ -263,7 +265,7 @@ public class EPub extends AbstractEBook implements EBook {
 
     @Override
     public Optional<String> getNextPage() {
-        List<ItemRef> itemRefs = packageDoc.getSpine().getItemRefs();
+        List<ItemRef> itemRefs = opfDocument.getSpine().getItemRefs();
 
         currentItem.ifPresentOrElse(
                 // search the next page
@@ -292,7 +294,7 @@ public class EPub extends AbstractEBook implements EBook {
 
     @Override
     public Optional<String> getPreviousPage() {
-        List<ItemRef> itemRefs = packageDoc.getSpine().getItemRefs();
+        List<ItemRef> itemRefs = opfDocument.getSpine().getItemRefs();
 
         currentItem.ifPresent(curr->{
             currentItem = Optional.empty();
@@ -309,13 +311,23 @@ public class EPub extends AbstractEBook implements EBook {
 
     @Override
     public Optional<String> getDefaultCSS() {
-        List<Item> items = packageDoc.getManifest().getItems();
+        Optional<String> result = Optional.empty();
+        List<Item> items = opfDocument.getManifest().getItems();
+        List<Optional<String>> css = new ArrayList<>();
         for (Item item : items) {
             if (item!=null && CSS.equals(item.getMediaType())) {
-                return readItem(Optional.of(item.getId()));
+                css.add(readItem(Optional.of(item.getId())));
             }
         }
-        return Optional.empty();
+        if (css.size()>0) {
+            StringBuilder st = new StringBuilder();
+            for (Optional<String> s : css) {
+                s.ifPresent(val->st.append(val.concat("\n")));
+
+            }
+            result = Optional.of(st.toString());
+        }
+        return result;
     }
 
     private Optional<String> readCurrentItem() {
@@ -328,13 +340,13 @@ public class EPub extends AbstractEBook implements EBook {
 
     private Optional<String> readItem(Optional<String> optItem) {
         return optItem.map(s->{
-            for (Item item : packageDoc.getManifest().getItems()) {
+            for (Item item : opfDocument.getManifest().getItems()) {
                 if (s.equals(item.getId())) return item;
             }
             return null;
         }).map(item -> {
             try (FileSystem fs = getFileSystem()) {
-                Path packageDirectory = fs.getPath(packageDocPath).getParent();
+                Path packageDirectory = fs.getPath(opfDocumentPath).getParent();
                 Path itemPath;
                 if (packageDirectory!=null) {
                     itemPath = packageDirectory.resolve(item.getHref());
@@ -362,16 +374,16 @@ public class EPub extends AbstractEBook implements EBook {
         }
     }
 
-    protected Package getPackageDoc() {
-        return this.packageDoc;
+    protected Package getOpfDocument() {
+        return this.opfDocument;
     }
 
     private boolean isProtected;
     private Optional<String> author;
     private Optional<String> title;
     private List<String>     subjects;
-    private Package          packageDoc;
-    private String           packageDocPath;
+    private Package          opfDocument;
+    private String           opfDocumentPath;
     private Optional<String> currentItem ;
 
     private final static String XHTML="application/xhtml+xml";

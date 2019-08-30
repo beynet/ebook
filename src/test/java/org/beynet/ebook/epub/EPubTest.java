@@ -48,7 +48,7 @@ public class EPubTest extends AbstractTests {
         assertEquals("Hunger Games",epub.getTitle().get());
         assertEquals("Collins Suzanne",epub.getAuthor().get());
         assertEquals(Integer.valueOf(0),epub.getSubjects().size());
-        basicTestOnPackage(epub.getPackageDoc());
+        basicTestOnPackage(epub.getOpfDocument());
 
 
         Path test = Files.createTempFile("test", ".epub");
@@ -75,7 +75,7 @@ public class EPubTest extends AbstractTests {
         assertFalse(epub.isProtected());
         assertEquals("Hunger Games",epub.getTitle().get());
         assertEquals("Collins Suzanne",epub.getAuthor().get());
-        basicTestOnPackage(epub.getPackageDoc());
+        basicTestOnPackage(epub.getOpfDocument());
 
 
         Path test = Files.createTempFile("test", ".epub");
@@ -95,7 +95,7 @@ public class EPubTest extends AbstractTests {
     public void changeAuthorWithNoRole() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/A Fire Upon The Deep.epub"));
         assertEquals("Vinge, Vernor",epub.getAuthor().get());
-        basicTestOnPackage(epub.getPackageDoc());
+        basicTestOnPackage(epub.getOpfDocument());
 
 
         Path test = Files.createTempFile("test", ".epub");
@@ -115,7 +115,7 @@ public class EPubTest extends AbstractTests {
     @Test
     public void isWithDRM() throws IOException {
         EPub epub = new EPub(Paths.get("./src/test/resources/books/DRM Hunger Games II. Lembrasement .epub"));
-        basicTestOnPackage(epub.getPackageDoc());
+        basicTestOnPackage(epub.getOpfDocument());
         assertTrue(epub.isProtected());
     }
 
@@ -135,7 +135,7 @@ public class EPubTest extends AbstractTests {
         assertEquals("Science-Fiction",epub.getSubjects().get(0));
 
         //xml tests
-        Package packageDoc = epub.getPackageDoc();
+        Package packageDoc = epub.getOpfDocument();
         basicTestOnPackage(packageDoc);
         Metadata metadata = packageDoc.getMetadata();
 
@@ -195,7 +195,8 @@ public class EPubTest extends AbstractTests {
         Identifier identifier = new Identifier();
         identifier.setId("BookID");
         identifier.setValue("urn:uuid:446cd1b2-7a79-48a0-b6cf-607fc618c09e");
-        assertEquals(identifier,metadata.getIdentifier());
+        assertEquals(Integer.valueOf(1),Integer.valueOf(metadata.getIdentifiers().size()));
+        assertEquals(identifier,metadata.getIdentifiers().get(0));
 
         Reference ref = new Reference();
         ref.setHref("Text/couverture.xhtml");
@@ -204,7 +205,7 @@ public class EPubTest extends AbstractTests {
         Guide guide = new Guide();
         guide.getReferences().add(ref);
 
-        assertEquals(guide,epub.getPackageDoc().getGuide());
+        assertEquals(guide,epub.getOpfDocument().getGuide());
     }
 
     @Test
@@ -213,8 +214,8 @@ public class EPubTest extends AbstractTests {
         Path test = Files.createTempDirectory("test");
         Path expected=test.resolve("Science-Fiction").resolve("Stephen Baxter").resolve("Les univers multiples I  Temps.epub");
 
-        basicTestOnPackage(epub.getPackageDoc());
-        Metadata metadata = epub.getPackageDoc().getMetadata();
+        basicTestOnPackage(epub.getOpfDocument());
+        Metadata metadata = epub.getOpfDocument().getMetadata();
         /*
          <dc:creator id="creator02">Sylvie Denis</dc:creator>
          <dc:creator id="creator03">Roland C. Wagner</dc:creator>

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@XmlType(name = "metadata",propOrder = {"title","creators","contributors","subjects","publishers", "dates","identifier","language","rights","metas"})
+@XmlType(name = "metadata",propOrder = {"title","creators","contributors","subjects","publishers", "dates", "identifiers","language","rights","metas"})
 public class Metadata {
 
     public static final String AUT = "aut";
@@ -66,7 +66,7 @@ public class Metadata {
     }
 
     @XmlElement(name="identifier",namespace = "http://purl.org/dc/elements/1.1/")
-    public List<Identifier> getIdentifier() {
+    public List<Identifier> getIdentifiers() {
         return identifier;
     }
 

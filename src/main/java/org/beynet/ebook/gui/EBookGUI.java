@@ -27,10 +27,7 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -236,9 +233,10 @@ public class EBookGUI extends Application {
                         currentEBook.map(e -> e.convertRessourceLocalPathToGlobalURL(href).orElse(null)).ifPresent(s->img.setAttribute("src",s));
                     }
                     if (nightMode==true) {
-                        ebookView.getEngine().executeScript("document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
+                        ebookView.getEngine().executeScript("document.body.style.paddingRight = \"50px\";document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
                     }
-                    ebookView.getEngine().executeScript("document.charset = \"UTF-8\"");
+
+                    //ebookView.getEngine().executeScript("document.charset = \"UTF-8\"");
                 }
             }
         });
@@ -269,10 +267,40 @@ public class EBookGUI extends Application {
         currentStage.show();
     }
 
+    private Optional<String> readInputStream(InputStream input)  {
+        Optional<String> result ;
+        byte[] read = new byte[1024];
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            try (InputStream is = input) {
+                int cr = 1;
+                while (cr>=0) {
+                    cr = is.read(read);
+                    if (cr>0) os.write(read,0,cr);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("unable to read resource",e);
+        }
+        result=Optional.of(os.toString());
+        return result;
+    }
+
+    private Optional<String> readResource(String path) {
+        Optional<String> result = Optional.empty();
+        try {
+            result = readInputStream(getClass().getResource(path).openStream());
+        } catch (IOException e) {
+            logger.error("unable to obtain resource "+path+" input stream",e);
+        }
+        return result;
+    }
+
     private void loadEBook() {
         currentEBook.ifPresent(e->{
             WebEngine engine = ebookView.getEngine();
-            engine.setUserStyleSheetLocation(e.getDefaultCSS().map(s -> "data:,".concat(s)).orElse("data:,"));
+            final String defaultCSS = readResource("/default.css").orElse("");
+            engine.setUserStyleSheetLocation(e.getDefaultCSS().map(s -> "data:,".concat(s).concat(defaultCSS)).orElse("data:,".concat(defaultCSS)));
             Optional<String> page = e.getCurrentPage().or(() -> e.getFirstPage());
             nightMode = e.loadSavedNightMode().orElse(Boolean.FALSE).booleanValue();
             ebookView.setZoom(e.loadSavedCurrentZoom().orElse(Double.valueOf(1.0)));
