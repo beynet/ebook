@@ -14,7 +14,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2/</url>
+            <url>https://repo1.maven.org/maven2/</url>
         </repository>
         <repository> <!-- for javaee:javaee-api -->
             <id>java.net</id>
@@ -26,8 +26,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>12</java.version>
-        <jfx.version>12.0.1</jfx.version>
+        <java.version>13</java.version>
+        <jfx.version>13</jfx.version>
         <junit.jupiter.version>5.5.1</junit.jupiter.version>
     </properties>
 
