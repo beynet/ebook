@@ -98,6 +98,11 @@ public class EBookGUI extends Application {
         }
     }
 
+    private void loadContent(String content) {
+        content=content.replaceAll("<title\\s*/>","<title> </title>");
+        ebookView.getEngine().loadContent(content);
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
 
@@ -124,19 +129,19 @@ public class EBookGUI extends Application {
         Button firstPage = new Button("first page");
         firstPage.setTooltip(new Tooltip("first page"));
         firstPage.setOnAction(event -> {
-            currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.getFirstPage().orElse("")));
+            currentEBook.ifPresent(e->loadContent(e.getFirstPage().orElse("")));
         });
 
         Button nextPage = new Button("next");
         nextPage.setTooltip(new Tooltip("next"));
         nextPage.setOnAction(event -> {
-            currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.getNextPage().orElse("")));
+            currentEBook.ifPresent(e->loadContent(e.getNextPage().orElse("")));
         });
 
         Button previousPage = new Button("previous");
         previousPage.setTooltip(new Tooltip("previous"));
         previousPage.setOnAction(event -> {
-            currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.getPreviousPage().orElse("")));
+            currentEBook.ifPresent(e->loadContent(e.getPreviousPage().orElse("")));
         });
 
         Button plus = new Button("+");
@@ -215,7 +220,7 @@ public class EBookGUI extends Application {
                             if (CLICK.equals(ev.getType())) {
                                 String href = ((Element)ev.getCurrentTarget()).getAttribute("href");
                                 if (href==null) return;
-                                Platform.runLater(()->currentEBook.ifPresent(e->ebookView.getEngine().loadContent(e.loadPage(href).orElse(""))));
+                                Platform.runLater(()->currentEBook.ifPresent(e->loadContent(e.loadPage(href).orElse(""))));
                             }
                         }
                     };
@@ -304,7 +309,7 @@ public class EBookGUI extends Application {
             Optional<String> page = e.getCurrentPage().or(() -> e.getFirstPage());
             nightMode = e.loadSavedNightMode().orElse(Boolean.FALSE).booleanValue();
             ebookView.setZoom(e.loadSavedCurrentZoom().orElse(Double.valueOf(1.0)));
-            engine.loadContent(page.get());
+            loadContent(page.get());
             //engine.loadContent(e.getPath().toUri().toString());
         });
     }

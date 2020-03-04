@@ -24,8 +24,8 @@ public class AppTest extends AbstractTests{
     @Test
     public void replace(){
 
-        String p="<>essai:\\test*|><\"";
-        System.out.println(p.replaceAll("[\\\\<>:|/?*\"]",""));
+        String p="dsdf<title/>\"";
+        System.out.println(p.replaceAll("<title\\s*/>","<title> </title>"));
     }
 
     @Test
