@@ -2,9 +2,6 @@ var EBOOK_PREVIOUS = "ebookPrevious";
 var EBOOK_CURRENT = "ebookCurrent";
 var nextTextNodes=[];
 var previousTextNodes=[];
-var currentPartial=null;
-var partialOffset=null;
-var partialNode = null;
 
 function isVisible(el) {
     var top = el.offsetTop;
@@ -83,7 +80,7 @@ function addWords(node,offset) {
     for (let j=c.length-1;j>=0;j--){
         node.removeChild(c[j]);
     }
-    let words = currentPartial.split(" ");
+    let words = document.currentPartial.split(" ");
     let j;
     let lastNode ;
     let total = true;
@@ -102,24 +99,48 @@ function addWords(node,offset) {
     }
     if (total==false) {
         node.removeChild(lastNode);
-        partialOffset=j;
-        partialNode=node;
+        document.partialOffset=j;
+        document.partialNode=node;
     }
     else {
-        currentPartial=null;
+        document.currentPartial=null;
     }
     return total;
 }
 
+function enhanceDocument() {
+    if (typeof document.currentPartial == "undefined") {
+        Object.defineProperty(document,'currentPartial',{
+            value: null,
+            writable: true
+        });
+    }
+    if (typeof document.partialOffset == "undefined") {
+        Object.defineProperty(document,'partialOffset',{
+            value: null,
+            writable: true
+        });
+    }
+    if (typeof document.partialNode == "undefined") {
+        Object.defineProperty(document,'partialNode',{
+            value: null,
+            writable: true
+        });
+    }
+}
+
 function firstNext() {
+
+    enhanceDocument();
 
     for (let i=0;i<previousTextNodes.length;i++) {
         let node = previousTextNodes[i];
         node.style.display="none";
     }
 
-    if (currentPartial!==null) {
-        let total=addWords(partialNode,partialOffset);
+    if (document.currentPartial!==null) {
+        let total=addWords(document.partialNode,document.partialOffset);
+        if (total==false) return;
     }
 
     let toRemove=[];
@@ -128,7 +149,7 @@ function firstNext() {
         node.style.display="";
         if (partlyVisible(node)) {
             alert("partial");
-            currentPartial = node.textContent;
+            document.currentPartial = node.textContent;
             let total=addWords(node,0);
             break;
         }
@@ -165,10 +186,10 @@ function onLoad() {
     for (let i=0;i<nextTextNodes.length;i++) {
         let node = nextTextNodes[i];
         let father = node.parentNode;
-        Object.defineProperty(node,'previousNodeFather',{
+        /*Object.defineProperty(node,'previousNodeFather',{
             value: father,
             writable: true
-        });
+        });*/
         node.style.display="none";
     }
 
