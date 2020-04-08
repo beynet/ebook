@@ -1,5 +1,11 @@
 var EBOOK_PREVIOUS = "ebookPrevious";
 var EBOOK_CURRENT = "ebookCurrent";
+var nextTextNodes=[];
+var previousTextNodes=[];
+var currentPartial=null;
+var partialOffset=null;
+var partialNode = null;
+
 function isVisible(el) {
     var top = el.offsetTop;
     var left = el.offsetLeft;
@@ -34,44 +40,11 @@ function partlyVisible(el) {
 
     return (
         top >= window.pageYOffset &&
-        left >= window.pageXOffset
+        top  <= (window.pageYOffset + window.innerHeight) &&
+        top+height >     (window.pageYOffset + window.innerHeight)
     );
 }
 
-
-function prev() {
-    let body = document.getElementsByTagName('body')[0];
-    let textNodes = [];
-    textNodes = getTextNodes(textNodes,body);
-    let firstVisible=null;
-
-    for (i = 0; i < textNodes.length; i++) {
-        var e = textNodes[i];
-        if (!e.classList.contains(EBOOK_PREVIOUS)) {
-            firstVisible =e ;
-            break;
-        }
-    }
-    if (firstVisible==null) return;
-    firstVisible.classList.remove(EBOOK_CURRENT);
-    let start = false;
-    for (i = textNodes.length-1; i >=0 ; i--) {
-        var e = textNodes[i];
-        if (start==false) {
-            if (firstVisible === e) start=true;
-        }
-        else {
-            e.style.visibility = null;
-            if (e.classList.contains(EBOOK_PREVIOUS)) e.classList.remove(EBOOK_PREVIOUS);
-            e.scrollIntoView(true);
-            if (!isVisible(firstVisible) ) {
-                e.classList.add(EBOOK_CURRENT);
-                break;
-            }
-        }
-
-    }
-}
 
 function getTextNodes(textNodes,element){
     let nodes = element.childNodes;
@@ -88,64 +61,88 @@ function getTextNodes(textNodes,element){
     return textNodes;
 }
 
+function next() {
+    return firstNext();
+}
+function prev() {
+    return prevPage();
+}
 
-function next_new() {
+function nextPage() {
     window.scroll(0,window.pageYOffset+window.innerHeight);
 
 }
-function prev_new() {
+function prevPage() {
     window.scroll(0,window.pageYOffset-window.innerHeight-2);
 }
-function next() {
-    let body = document.getElementsByTagName('body')[0];
-    let textNodes = [];
-    let toHidde = [];
-    textNodes = getTextNodes(textNodes,body);
-    let i;
-    let firstVisibleFound = false ;
-    let found = false;
-    for (i = 0; i < textNodes.length; i++) {
-        let e = textNodes[i];
-        if (e.classList.contains(EBOOK_PREVIOUS)) continue;
-        if (isVisible(e)) {
-            firstVisibleFound = true ;
-            toHidde.push(e);
-            e.classList.remove(EBOOK_CURRENT);
+
+
+
+function addWords(node,offset) {
+    let c = node.childNodes;
+    for (let j=c.length-1;j>=0;j--){
+        node.removeChild(c[j]);
+    }
+    let words = currentPartial.split(" ");
+    let j;
+    let lastNode ;
+    let total = true;
+    for (j=offset;j<words.length;j++) {
+        let w = words[j];
+
+        if (j>0) {
+            w=" "+w;
         }
-        // go to next element not visible after visible content
-        else {
-            //same element as previously
-            if (e.classList.contains(EBOOK_CURRENT)) {
-                window.scrollBy(0, window.innerHeight);
-            }
-            else {
-                e.classList.add(EBOOK_CURRENT);
-                if (partlyVisible(e)) {
-                    //window.scroll(0,)
-                    window.scrollBy(0,window.innerHeight);
-                }
-                else {
-                    e.scrollIntoView(true);
-                }
-                found=true;
-            }
+        lastNode =document.createTextNode(w);
+        node.appendChild(lastNode);
+        if (!isVisible(node)) {
+            total=false;
             break;
         }
     }
+    if (total==false) {
+        node.removeChild(lastNode);
+        partialOffset=j;
+        partialNode=node;
+    }
+    else {
+        currentPartial=null;
+    }
+    return total;
+}
 
-    // only hide if true
-    if (found==true) {
-        for (i=0;i<toHidde.length;i++) {
-            let e = toHidde[i];
-            //e.style.display = "none";
-            //e.style.visibility = 'hidden';
-            e.classList.add(EBOOK_PREVIOUS);
-            //e.style.visibility = 'hidden';
-        }
-        return true;
+function firstNext() {
+
+    for (let i=0;i<previousTextNodes.length;i++) {
+        let node = previousTextNodes[i];
+        node.style.display="none";
     }
 
-    return false;
+    if (currentPartial!==null) {
+        let total=addWords(partialNode,partialOffset);
+    }
+
+    let toRemove=[];
+    for (let i=0;i<nextTextNodes.length;i++) {
+        let node =nextTextNodes[i];
+        node.style.display="";
+        if (partlyVisible(node)) {
+            alert("partial");
+            currentPartial = node.textContent;
+            let total=addWords(node,0);
+            break;
+        }
+        else if (!isVisible(node)) {
+            node.style.display="none";
+            break;
+        }
+        previousTextNodes.push(node);
+        toRemove.push(node);
+    }
+    for (let i=0;i<toRemove.length;i++) {
+        let node = toRemove[i];
+        nextTextNodes.splice(nextTextNodes.indexOf(node),1);
+    }
 }
 
 document.addEventListener('keydown', function (event) {
@@ -160,6 +157,21 @@ document.addEventListener('keydown', function (event) {
     }
 },true);
 
+
 function onLoad() {
-    alert("version 6")
+    alert("version 8");
+    nextTextNodes = getTextNodes(nextTextNodes,document.body);
+
+    for (let i=0;i<nextTextNodes.length;i++) {
+        let node = nextTextNodes[i];
+        let father = node.parentNode;
+        Object.defineProperty(node,'previousNodeFather',{
+            value: father,
+            writable: true
+        });
+        node.style.display="none";
+    }
+
+    //document.body.style.textOverflow="ellipsis";
 }
+
