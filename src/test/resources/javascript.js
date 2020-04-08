@@ -91,17 +91,11 @@ function addWordsReverse(node,offsetEnd) {
         node.insertBefore(lastNode,node.firstChild);
         if (!isVisible(node)) {
             total=false;
+            node.removeChild(lastNode);
             break;
         }
     }
-    if (total==false) {
-        node.removeChild(lastNode);
-        document.partialOffset=j;
-        document.partialNode=node;
-    }
-    else {
-        document.currentPartial=null;
-    }
+
     return total;
 }
 
@@ -177,30 +171,64 @@ function enhanceDocument() {
     }
 }
 
+function saveCurrentPageAndRemoveFromNext(toRemove) {
+    let currentPage = {pages:[],
+        currentPartial:null,
+        partialOffset:null,
+        partialNode:null
+    };
+    for (let i=0;i<toRemove.length;i++) {
+        let node = toRemove[i];
+        currentPage.pages.push(node);
+        document.nextTextNodes.splice(document.nextTextNodes.indexOf(node),1);
+    }
+    currentPage.partialOffset=document.partialOffset;
+    currentPage.partialNode=document.partialNode;
+    currentPage.currentPartial=document.currentPartial;
+    document.currentPages.push(currentPage);
+}
+
 function customPrev() {
     enhanceDocument();
+    if (document.currentPages.length==0) return next();
     let currentPage = document.currentPages[document.currentPages.length-1];
+    if (currentPage.currentPartial!=null) {
+        // TODO : only remove if same node not in previous as partial node
+        let c = currentPage.partialNode.childNodes;
+        for (let j=c.length-1;j>=0;j--){
+            currentPage.partialNode.removeChild(c[j]);
+        }
+        currentPage.partialNode.appendChild(document.createTextNode(currentPage.currentPartial));
+        document.nextTextNodes.unshift(currentPage.partialNode);
+        currentPage.partialNode.style.display="none";
+    }
     for (let j=currentPage.pages.length-1;j>=0;j--) {
         let node = currentPage.pages[j];
         node.style.display="none";
         document.nextTextNodes.unshift(node);
         document.previousTextNodes.splice(document.previousTextNodes.indexOf(node),1);
     }
+    document.partialNode=null;
+    document.partialOffset=null;
+    document.currentPartial=null;
+
     document.currentPages.splice(document.currentPages.length-1,1);
     if (document.currentPages.length==0) return prev();
     currentPage = document.currentPages[document.currentPages.length-1];
-    for (let j=currentPage.pages.length-1;j>=0;j--) {
+    for (let j=0;j<currentPage.pages.length;j++) {
         let node = currentPage.pages[j];
         node.style.display="";
-        document.nextTextNodes.unshift(node);
+        //document.nextTextNodes.unshift(node);
     }
 
     if (currentPage.currentPartial!=null) {
-        let previousOffset;
+        document.partialOffset = currentPage.partialOffset;
         document.currentPartial = currentPage.currentPartial;
         document.partialNode = currentPage.partialNode;
-        addWordsReverse(currentPage.partialNode,previousOffset);
+        document.partialNode.style.display="";
+        addWordsReverse(currentPage.partialNode,document.partialOffset);
     }
+    currentPage.pages[0].scrollIntoView(true);
 }
 
 function customNext() {
@@ -210,16 +238,24 @@ function customNext() {
         let node = document.previousTextNodes[i];
         node.style.display="none";
     }
-
+    let toRemove=[];
     if (document.currentPartial!==null) {
         let total=addWords(document.partialNode,document.partialOffset);
         document.partialNode.scrollIntoView(true);
-        if (total==false) return;
+        if (total==false) {
+            alert("this is it");
+            saveCurrentPageAndRemoveFromNext([]);
+            return;
+        }
+        else {
+            document.previousTextNodes.push(document.partialNode);
+            toRemove.push(document.partialNode);
+        }
     }
     document.currentPartial=null;
     document.partialOffset=0;
     document.partialNode=null;
-    let toRemove=[];
+
     for (let i=0;i<document.nextTextNodes.length;i++) {
         let node =document.nextTextNodes[i];
         node.style.display="";
@@ -237,20 +273,7 @@ function customNext() {
             toRemove.push(node);
         }
     }
-    let currentPage = {pages:[],
-                       currentPartial:null,
-                       partialOffset:null,
-                        partialNode:null
-                      };
-    for (let i=0;i<toRemove.length;i++) {
-        let node = toRemove[i];
-        currentPage.pages.push(node);
-        document.nextTextNodes.splice(document.nextTextNodes.indexOf(node),1);
-    }
-    currentPage.partialOffset=document.partialOffset;
-    currentPage.partialNode=document.partialNode;
-    currentPage.currentPartial=document.currentPartial;
-    document.currentPages.push(currentPage);
+    saveCurrentPageAndRemoveFromNext(toRemove);
 }
 
 document.addEventListener('keydown', function (event) {
