@@ -15,10 +15,10 @@ function isVisible(el) {
     }
 
     return (
-        top >= window.pageYOffset &&
-        left >= window.pageXOffset &&
-        (top + height) <= (window.pageYOffset + window.innerHeight) &&
-        (left + width) <= (window.pageXOffset + window.innerWidth)
+        top >= Math.round(window.pageYOffset) &&
+        left >= Math.round(window.pageXOffset) &&
+        (top + height) <= Math.round(window.pageYOffset + window.innerHeight) &&
+        (left + width) <= Math.round(window.pageXOffset + window.innerWidth)
     );
 }
 
@@ -35,9 +35,9 @@ function partlyVisible(el) {
     }
 
     return (
-        top >= window.pageYOffset &&
-        top  <= (window.pageYOffset + window.innerHeight) &&
-        top+height >     (window.pageYOffset + window.innerHeight)
+        top >= Math.round(window.pageYOffset) &&
+        top  <= Math.round(window.pageYOffset + window.innerHeight) &&
+        top+height >     Math.round(window.pageYOffset + window.innerHeight)
     );
 }
 
@@ -47,7 +47,7 @@ function getTextNodes(textNodes,element){
     let i;
     for (i=0;i<nodes.length;i++) {
         let node = nodes[i];
-        if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3') {
+        if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3'|| node.tagName=='IMG') {
             textNodes.push(node);
         }
         else {
@@ -77,7 +77,7 @@ function addWordsReverse(node,offsetEnd) {
     for (let j=c.length-1;j>=0;j--){
         node.removeChild(c[j]);
     }
-    let words = document.currentPartial.split(" ");
+    let words = document.partialText.split(" ");
     let j;
     let lastNode ;
     let total = true;
@@ -104,7 +104,7 @@ function addWords(node,offset) {
     for (let j=c.length-1;j>=0;j--){
         node.removeChild(c[j]);
     }
-    let words = document.currentPartial.split(" ");
+    let words = document.partialText.split(" ");
     let j;
     let lastNode ;
     let total = true;
@@ -123,18 +123,26 @@ function addWords(node,offset) {
     }
     if (total==false) {
         node.removeChild(lastNode);
-        document.partialOffset=j;
-        document.partialNode=node;
+        // no word could be visible we consider as not visible at all not partial
+        if (j==0) {
+            node.appendChild(document.createTextNode(document.partialText));
+            document.partialText=null;
+            node.style.display="none";
+        }
+        else {
+            document.partialOffset = j;
+            document.partialNode = node;
+        }
     }
     else {
-        document.currentPartial=null;
+        document.partialText=null;
     }
     return total;
 }
 
 function enhanceDocument() {
-    if (typeof document.currentPartial == "undefined") {
-        Object.defineProperty(document,'currentPartial',{
+    if (typeof document.partialText == "undefined") {
+        Object.defineProperty(document,'partialText',{
             value: null,
             writable: true
         });
@@ -173,18 +181,24 @@ function enhanceDocument() {
 
 function saveCurrentPageAndRemoveFromNext(toRemove) {
     let currentPage = {pages:[],
-        currentPartial:null,
+        partialText:null,
         partialOffset:null,
         partialNode:null
     };
     for (let i=0;i<toRemove.length;i++) {
         let node = toRemove[i];
         currentPage.pages.push(node);
-        document.nextTextNodes.splice(document.nextTextNodes.indexOf(node),1);
+        let index = document.nextTextNodes.indexOf(node);
+        if (index!=-1) {
+            document.nextTextNodes.splice(index,1);
+        }
+        else {
+            //alert("node not found "+node.textContent);
+        }
     }
     currentPage.partialOffset=document.partialOffset;
     currentPage.partialNode=document.partialNode;
-    currentPage.currentPartial=document.currentPartial;
+    currentPage.partialText=document.partialText;
     document.currentPages.push(currentPage);
 }
 
@@ -192,15 +206,26 @@ function customPrev() {
     enhanceDocument();
     if (document.currentPages.length==0) return next();
     let currentPage = document.currentPages[document.currentPages.length-1];
-    if (currentPage.currentPartial!=null) {
-        // TODO : only remove if same node not in previous as partial node
-        let c = currentPage.partialNode.childNodes;
-        for (let j=c.length-1;j>=0;j--){
-            currentPage.partialNode.removeChild(c[j]);
+    // current page start with partial text
+    if (currentPage.partialText!=null) {
+
+        let previousSameNode = false;
+        if (document.currentPages.length>1) {
+            let previousPage = document.currentPages[document.currentPages.length-2];
+            if (currentPage.partialNode===previousPage.partialNode) {
+                previousSameNode = true ;
+            }
         }
-        currentPage.partialNode.appendChild(document.createTextNode(currentPage.currentPartial));
-        document.nextTextNodes.unshift(currentPage.partialNode);
-        currentPage.partialNode.style.display="none";
+        if (previousSameNode===false) {
+            // TODO : only remove if same node not in previous as partial node
+            let c = currentPage.partialNode.childNodes;
+            for (let j = c.length - 1; j >= 0; j--) {
+                currentPage.partialNode.removeChild(c[j]);
+            }
+            currentPage.partialNode.appendChild(document.createTextNode(currentPage.partialText));
+            document.nextTextNodes.unshift(currentPage.partialNode);
+            currentPage.partialNode.style.display = "none";
+        }
     }
     for (let j=currentPage.pages.length-1;j>=0;j--) {
         let node = currentPage.pages[j];
@@ -210,7 +235,7 @@ function customPrev() {
     }
     document.partialNode=null;
     document.partialOffset=null;
-    document.currentPartial=null;
+    document.partialText=null;
 
     document.currentPages.splice(document.currentPages.length-1,1);
     if (document.currentPages.length==0) return prev();
@@ -218,12 +243,11 @@ function customPrev() {
     for (let j=0;j<currentPage.pages.length;j++) {
         let node = currentPage.pages[j];
         node.style.display="";
-        //document.nextTextNodes.unshift(node);
     }
 
-    if (currentPage.currentPartial!=null) {
+    if (currentPage.partialText!=null) {
         document.partialOffset = currentPage.partialOffset;
-        document.currentPartial = currentPage.currentPartial;
+        document.partialText = currentPage.partialText;
         document.partialNode = currentPage.partialNode;
         document.partialNode.style.display="";
         addWordsReverse(currentPage.partialNode,document.partialOffset);
@@ -233,17 +257,18 @@ function customPrev() {
 
 function customNext() {
     enhanceDocument();
-
+    let firstNode = true;
     for (let i=0;i<document.previousTextNodes.length;i++) {
         let node = document.previousTextNodes[i];
         node.style.display="none";
     }
     let toRemove=[];
-    if (document.currentPartial!==null) {
-        let total=addWords(document.partialNode,document.partialOffset);
+    if (document.partialText!==null) {
+        firstNode = false;
         document.partialNode.scrollIntoView(true);
+        let total=addWords(document.partialNode,document.partialOffset);
+
         if (total==false) {
-            alert("this is it");
             saveCurrentPageAndRemoveFromNext([]);
             return;
         }
@@ -252,25 +277,43 @@ function customNext() {
             toRemove.push(document.partialNode);
         }
     }
-    document.currentPartial=null;
+    document.partialText=null;
     document.partialOffset=0;
     document.partialNode=null;
 
     for (let i=0;i<document.nextTextNodes.length;i++) {
+        let firstInPage = false ;
         let node =document.nextTextNodes[i];
         node.style.display="";
-        if (partlyVisible(node)) {
-            alert("partial");
-            document.currentPartial = node.textContent;
-            let total=addWords(node,0);
-            break;
+        if (firstNode==true) {
+            firstInPage = true ;
+            firstNode=false;
+            node.scrollIntoView(true);
+            node.scrollTo(0,0);
         }
-        else if (!isVisible(node)) {
-            node.style.display="none";
-            break;
-        } else {
-            document.previousTextNodes.push(node);
-            toRemove.push(node);
+        if ("IMG"===node.tagName) {
+            if (!isVisible(node) && firstInPage==false) {
+                node.style.display="none";
+                break;
+            }
+            else {
+                document.previousTextNodes.push(node);
+                toRemove.push(node);
+            }
+        }
+        else{
+            if (partlyVisible(node)) {
+                document.partialText = node.textContent;
+                addWords(node,0);
+                break;
+            }
+            else if (!isVisible(node)) {
+                node.style.display="none";
+                break;
+            } else {
+                document.previousTextNodes.push(node);
+                toRemove.push(node);
+            }
         }
     }
     saveCurrentPageAndRemoveFromNext(toRemove);
@@ -290,7 +333,7 @@ document.addEventListener('keydown', function (event) {
 
 
 function onLoad() {
-    alert("version 9");
+    alert("version 3");
     document.body.style.overflow = "hidden";
     enhanceDocument();
     document.nextTextNodes = getTextNodes(document.nextTextNodes,document.body);
