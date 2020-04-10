@@ -50,6 +50,17 @@ function getTextNodes(textNodes,element){
         if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3'|| node.tagName=='IMG') {
             textNodes.push(node);
         }
+        else if (node.tagName=='DIV') {
+            let result=getTextNodes([],node);
+            if (result.length==0) {
+                textNodes.push(node);
+            }
+            else {
+                for (let j=0;j<result.length;j++) {
+                    textNodes.push(result[j]);
+                }
+            }
+        }
         else {
             textNodes = getTextNodes(textNodes,node);
         }
@@ -257,6 +268,7 @@ function customPrev() {
 
 function customNext() {
     enhanceDocument();
+    if (document.nextTextNodes.length==0) return;
     let firstNode = true;
     for (let i=0;i<document.previousTextNodes.length;i++) {
         let node = document.previousTextNodes[i];
@@ -329,7 +341,7 @@ document.addEventListener('keydown', function (event) {
     else if (key === 'ArrowRight' || key === 39) {
         next();
     }
-},true);
+},false);
 
 
 function onLoad() {
