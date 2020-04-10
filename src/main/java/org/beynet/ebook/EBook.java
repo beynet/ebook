@@ -91,11 +91,18 @@ public interface EBook {
 
     Optional<String> loadSavedCurrentPage() ;
 
+    void saveCurrentPageInPage(String toString);
+    Optional<String> loadSavedCurrentPageInPage();
+
     void saveCurrentZoom(double zoom);
     Optional<Double> loadSavedCurrentZoom();
 
     void saveNightMode(boolean nightMode);
     Optional<Boolean> loadSavedNightMode();
+
+    void saveSmartDisplayMode(boolean nightMode);
+    Optional<Boolean> loadSmartDisplayMode();
+
 
     /**
      * @return the ebook previous page
@@ -110,5 +117,6 @@ public interface EBook {
     String UNDEFINED_TITLE="undefined title";
     String UNDEFINED_ID   ="undefined id";
     String UNDEFINED_SUBJECT="undefined subject";
+
 }
 

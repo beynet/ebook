@@ -74,6 +74,19 @@ public abstract class AbstractEBook implements EBook {
     }
 
     @Override
+    public void saveCurrentPageInPage(String pageInPage) {
+        if (pageInPage!=null && !"".equals(pageInPage)) {
+            getProperties().put(CURRENT_PAGE_IN_PAGE, pageInPage);
+            saveProperties();
+        }
+    }
+
+    @Override
+    public Optional<String> loadSavedCurrentPageInPage() {
+        return Optional.ofNullable(getProperties().getProperty(CURRENT_PAGE_IN_PAGE));
+    }
+
+    @Override
     public void saveCurrentZoom(double zoom){
         getProperties().put(ZOOM,Double.valueOf(zoom).toString());
         saveProperties();
@@ -94,6 +107,15 @@ public abstract class AbstractEBook implements EBook {
         return Optional.ofNullable(getProperties().getProperty(NIGHT_MODE)).map(n->Boolean.valueOf(n));
     }
 
+    @Override
+    public void saveSmartDisplayMode(boolean nightMode) {
+        getProperties().put(SMART_DISPLAY_MODE,Boolean.valueOf(nightMode).toString());
+        saveProperties();
+    }
+    @Override
+    public Optional<Boolean> loadSmartDisplayMode() {
+        return Optional.ofNullable(getProperties().getProperty(SMART_DISPLAY_MODE)).map(n->Boolean.valueOf(n));
+    }
 
     protected String toFileName(String p) {
         return p.replaceAll("[\\\\<>:|/?*\"]","").stripLeading().stripTrailing();
@@ -170,6 +192,8 @@ public abstract class AbstractEBook implements EBook {
     private Optional<Path>       propertyFilePath;
     private final static Logger logger = LogManager.getLogger(AbstractEBook.class);
     private final static String CURRENT_PAGE = "currentPage";
+    private final static String CURRENT_PAGE_IN_PAGE = "pageInPage";
     private final static String  ZOOM = "zoom";
     private final static String  NIGHT_MODE = "nightMode";
+    private final static String  SMART_DISPLAY_MODE = "smartDisplayMode";
 }

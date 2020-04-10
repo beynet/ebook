@@ -291,7 +291,6 @@ public class EPub extends AbstractEBook implements EBook {
         return readCurrentItem();
     }
 
-
     @Override
     public Optional<String> getPreviousPage() {
         List<ItemRef> itemRefs = opfDocument.getSpine().getItemRefs();

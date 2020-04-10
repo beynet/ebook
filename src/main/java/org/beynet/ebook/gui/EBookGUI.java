@@ -28,6 +28,9 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,10 +46,32 @@ public class EBookGUI extends Application {
     private WebView           ebookView    ;
     private Optional<EBook>   currentEBook ;
     private boolean nightMode=false ;
+    private boolean smartDisplayMode = true ;
     private final static String CONF_FILE_NAME ="ebooks.ini";
     private final static String CURRENT_EBOOK_PATH ="CurrentEbookPath";
     private Properties properties = null;
     private Path propertyFilePath = null ;
+
+    private final static String nextPreviousJS ;
+    static {
+        try (InputStream is = EBookGUI.class.getResourceAsStream("/javascript.js")) {
+            byte[] b = new byte[1024];
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            int cr = 1;
+            while (cr >= 0) {
+                try {
+                    cr = is.read(b);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                if (cr > 0) bo.write(b, 0, cr);
+            }
+            nextPreviousJS = bo.toString("UTF-8");
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(Path eBookPath) {
         if (eBookPath!=null) launch(eBookPath.toString());
@@ -136,12 +161,33 @@ public class EBookGUI extends Application {
         nextPage.setTooltip(new Tooltip("next"));
         nextPage.setOnAction(event -> {
             currentEBook.ifPresent(e->loadContent(e.getNextPage().orElse("")));
+            currentEBook.ifPresent(e->e.saveCurrentPageInPage("1"));
         });
 
         Button previousPage = new Button("previous");
         previousPage.setTooltip(new Tooltip("previous"));
         previousPage.setOnAction(event -> {
             currentEBook.ifPresent(e->loadContent(e.getPreviousPage().orElse("")));
+            currentEBook.ifPresent(e->e.saveCurrentPageInPage("1"));
+        });
+
+        Button nextInPage = new Button(">>");
+        nextInPage.setTooltip(new Tooltip("next in page"));
+        nextInPage.setOnAction(event -> {
+            if (smartDisplayMode==true) {
+                Object page = ebookView.getEngine().executeScript(nextPreviousJS + "next();");
+                currentEBook.ifPresent(e -> e.saveCurrentPageInPage(page.toString()));
+                logger.info("page number=" + page.toString());
+            }
+        });
+        Button prevInPage = new Button("<<");
+        prevInPage.setTooltip(new Tooltip("prev in page"));
+        prevInPage.setOnAction(event -> {
+            if (smartDisplayMode==true) {
+                Object page = ebookView.getEngine().executeScript(nextPreviousJS + "prev();");
+                currentEBook.ifPresent(e -> e.saveCurrentPageInPage(page.toString()));
+                logger.info("page number=" + page.toString());
+            }
         });
 
         Button plus = new Button("+");
@@ -164,15 +210,24 @@ public class EBookGUI extends Application {
         nightModeButton.setOnAction(event->{
             this.nightMode = !this.nightMode;
             if (this.nightMode==true) {
-                ebookView.getEngine().executeScript("document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
+                ebookView.getEngine().executeScript("document.body.styledocument.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
             }
             else {
                 ebookView.getEngine().executeScript("document.body.style.backgroundColor = null;\ndocument.body.style.color = null;");
             }
             currentEBook.ifPresent(e->e.saveNightMode(nightMode));
         });
+        Button smartDisplay = new Button("smart");
+        smartDisplay.setOnAction(event->{
+            this.smartDisplayMode = !this.smartDisplayMode;
+            currentEBook.ifPresent(e->{
+                e.saveCurrentPageInPage("1");
+                loadContent(e.getCurrentPage().orElse(""));
+            });
+            currentEBook.ifPresent(e->e.saveSmartDisplayMode(smartDisplayMode));
+        });
 
-        htop.getChildren().addAll(firstPage,previousPage,nextPage,minus,plus,openEBook,nightModeButton);
+        htop.getChildren().addAll(firstPage,previousPage,nextPage,nextInPage,prevInPage,minus,plus,openEBook,nightModeButton,smartDisplay);
 
         mainVBOX.getChildren().add(htop);
 
@@ -230,6 +285,8 @@ public class EBookGUI extends Application {
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         ((EventTarget) nodeList.item(i)).addEventListener(CLICK, listener, true);
                     }
+
+                    //display local images
                     nodeList = doc.getElementsByTagName("img");
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         Element img = (Element) nodeList.item(i);
@@ -237,11 +294,23 @@ public class EBookGUI extends Application {
 
                         currentEBook.map(e -> e.convertRessourceLocalPathToGlobalURL(href).orElse(null)).ifPresent(s->img.setAttribute("src",s));
                     }
+
+                    // add smart display mode
+                    if (smartDisplayMode==true) {
+                        ebookView.getEngine().executeScript(nextPreviousJS + "onLoad();");
+                        currentEBook.ifPresent(e->{
+                            e.loadSavedCurrentPageInPage().ifPresent(p-> {
+                                for (int i = 0;i<Integer.valueOf(p).intValue()-1;i++) {
+                                    ebookView.getEngine().executeScript(nextPreviousJS+"next();");
+                                }
+                            });
+                        });
+                    }
+
                     if (nightMode==true) {
                         ebookView.getEngine().executeScript("document.body.style.paddingRight = \"50px\";document.body.style.backgroundColor = \"black\";\ndocument.body.style.color = \"grey\";");
                     }
 
-                    //ebookView.getEngine().executeScript("document.charset = \"UTF-8\"");
                 }
             }
         });
@@ -308,6 +377,7 @@ public class EBookGUI extends Application {
             engine.setUserStyleSheetLocation(e.getDefaultCSS().map(s -> "data:,".concat(s).concat(defaultCSS)).orElse("data:,".concat(defaultCSS)));
             Optional<String> page = e.getCurrentPage().or(() -> e.getFirstPage());
             nightMode = e.loadSavedNightMode().orElse(Boolean.FALSE).booleanValue();
+            smartDisplayMode = e.loadSmartDisplayMode().orElse(Boolean.TRUE).booleanValue();
             ebookView.setZoom(e.loadSavedCurrentZoom().orElse(Double.valueOf(1.0)));
             loadContent(page.get());
             //engine.loadContent(e.getPath().toUri().toString());

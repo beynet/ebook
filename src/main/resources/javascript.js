@@ -47,7 +47,7 @@ function getTextNodes(textNodes,element){
     let i;
     for (i=0;i<nodes.length;i++) {
         let node = nodes[i];
-        if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3'|| node.tagName=='IMG') {
+        if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3'|| node.tagName=='H4'||node.tagName=='IMG') {
             textNodes.push(node);
         }
         else if (node.tagName=='DIV') {
@@ -69,10 +69,12 @@ function getTextNodes(textNodes,element){
 }
 
 function next() {
-    return customNext();
+    customNext();
+    return currentPage();
 }
 function prev() {
-    return customPrev();
+    customPrev();
+    return currentPage();
 }
 
 function nextPage() {
@@ -343,9 +345,12 @@ document.addEventListener('keydown', function (event) {
     }
 },false);
 
+function currentPage() {
+    return document.currentPages.length;
+}
+
 
 function onLoad() {
-    alert("version 3");
     document.body.style.overflow = "hidden";
     enhanceDocument();
     document.nextTextNodes = getTextNodes(document.nextTextNodes,document.body);
@@ -359,6 +364,7 @@ function onLoad() {
         });*/
         node.style.display="none";
     }
+    next();
 
     //document.body.style.textOverflow="ellipsis";
 }
