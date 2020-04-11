@@ -338,7 +338,7 @@ function currentPage() {
 }
 
 
-function onLoad() {
+function startSmartDisplay(page) {
     document.body.style.overflow = "hidden";
     enhanceDocument();
     document.nextTextNodes = getTextNodes(document.nextTextNodes,document.body);
@@ -348,6 +348,16 @@ function onLoad() {
         let father = node.parentNode;
         node.style.display="none";
     }
-    next();
+    for (let i = 0;i<page;i++) {
+        next();
+    }
 }
+
+function scrollToRatio(ratio) {
+    window.scroll(0,document.body.scrollHeight*ratio);
+}
+function getRatio() {
+    return window.pageYOffset/document.body.scrollHeight;
+}
+
 

@@ -86,6 +86,18 @@ public abstract class AbstractEBook implements EBook {
         return Optional.ofNullable(getProperties().getProperty(CURRENT_PAGE_IN_PAGE));
     }
 
+
+    @Override
+    public void saveCurrentPageRatio(String pageRatio) {
+        getProperties().put(CURRENT_PAGE_RATIO, pageRatio);
+        saveProperties();
+    }
+
+    @Override
+    public Optional<String> loadSavedCurrentPageRatio() {
+        return Optional.ofNullable(getProperties().getProperty(CURRENT_PAGE_RATIO));
+    }
+
     @Override
     public void saveCurrentZoom(double zoom){
         getProperties().put(ZOOM,Double.valueOf(zoom).toString());
@@ -193,6 +205,7 @@ public abstract class AbstractEBook implements EBook {
     private final static Logger logger = LogManager.getLogger(AbstractEBook.class);
     private final static String CURRENT_PAGE = "currentPage";
     private final static String CURRENT_PAGE_IN_PAGE = "pageInPage";
+    private final static String CURRENT_PAGE_RATIO = "pageRatio";
     private final static String  ZOOM = "zoom";
     private final static String  NIGHT_MODE = "nightMode";
     private final static String  SMART_DISPLAY_MODE = "smartDisplayMode";

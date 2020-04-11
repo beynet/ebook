@@ -91,8 +91,11 @@ public interface EBook {
 
     Optional<String> loadSavedCurrentPage() ;
 
-    void saveCurrentPageInPage(String toString);
+    void saveCurrentPageInPage(String pageInPage);
     Optional<String> loadSavedCurrentPageInPage();
+
+    void saveCurrentPageRatio(String pageRatio);
+    Optional<String> loadSavedCurrentPageRatio();
 
     void saveCurrentZoom(double zoom);
     Optional<Double> loadSavedCurrentZoom();

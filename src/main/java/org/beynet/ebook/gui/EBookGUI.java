@@ -28,9 +28,6 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -128,10 +125,21 @@ public class EBookGUI extends Application {
         ebookView.getEngine().loadContent(content);
     }
 
+    private void saveCurrentPageRatio() {
+        Object page = ebookView.getEngine().executeScript(nextPreviousJS + "getRatio();");
+        if (page!=null) currentEBook.ifPresent(e->e.saveCurrentPageRatio(page.toString()));
+        logger.info("page ratio=" + page.toString());
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
 
         this.currentStage = stage ;
+        currentStage.setOnCloseRequest((t) -> {
+            currentEBook.ifPresent(b->{
+                saveCurrentPageRatio();
+            });
+        });
         Parameters parameters = getParameters();
         if (!parameters.getRaw().isEmpty()) {
             currentEBook = Optional.of(EBookFactory.createEBook(Paths.get(parameters.getRaw().get(0))));
@@ -161,14 +169,24 @@ public class EBookGUI extends Application {
         nextPage.setTooltip(new Tooltip("next"));
         nextPage.setOnAction(event -> {
             currentEBook.ifPresent(e->loadContent(e.getNextPage().orElse("")));
-            currentEBook.ifPresent(e->e.saveCurrentPageInPage("1"));
+            if (smartDisplayMode==true) {
+                currentEBook.ifPresent(e -> e.saveCurrentPageInPage("1"));
+            }
+            else {
+                currentEBook.ifPresent(e -> e.saveCurrentPageRatio("0"));
+            }
         });
 
         Button previousPage = new Button("previous");
         previousPage.setTooltip(new Tooltip("previous"));
         previousPage.setOnAction(event -> {
             currentEBook.ifPresent(e->loadContent(e.getPreviousPage().orElse("")));
-            currentEBook.ifPresent(e->e.saveCurrentPageInPage("1"));
+            if (smartDisplayMode==true) {
+                currentEBook.ifPresent(e -> e.saveCurrentPageInPage("1"));
+            }
+            else {
+                currentEBook.ifPresent(e -> e.saveCurrentPageRatio("0"));
+            }
         });
 
         Button nextInPage = new Button(">>");
@@ -297,14 +315,12 @@ public class EBookGUI extends Application {
 
                     // add smart display mode
                     if (smartDisplayMode==true) {
-                        ebookView.getEngine().executeScript(nextPreviousJS + "onLoad();");
-                        currentEBook.ifPresent(e->{
-                            e.loadSavedCurrentPageInPage().ifPresent(p-> {
-                                for (int i = 0;i<Integer.valueOf(p).intValue()-1;i++) {
-                                    ebookView.getEngine().executeScript(nextPreviousJS+"next();");
-                                }
-                            });
-                        });
+                        String page = currentEBook.map(e -> e.loadSavedCurrentPageInPage().orElse("1")).orElse("1");
+                        ebookView.getEngine().executeScript(nextPreviousJS + "startSmartDisplay("+page+");");
+                    }
+                    else {
+                        String page = currentEBook.map(e -> e.loadSavedCurrentPageRatio().orElse("0")).orElse("0");
+                        ebookView.getEngine().executeScript(nextPreviousJS + "scrollToRatio("+page+");");
                     }
 
                     if (nightMode==true) {
@@ -316,6 +332,10 @@ public class EBookGUI extends Application {
         });
 
         openEBook.setOnAction(event -> {
+            if (smartDisplayMode==false) {
+                saveCurrentPageRatio();
+            }
+
             FileChooser directoryChooser = new FileChooser();
             File result = directoryChooser.showOpenDialog(currentStage);
             if (result!=null) {
