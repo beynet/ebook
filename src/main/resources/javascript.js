@@ -333,18 +333,6 @@ function customNext() {
     saveCurrentPageAndRemoveFromNext(toRemove);
 }
 
-document.addEventListener('keydown', function (event) {
-
-
-    var key = event.key || event.keyCode;
-    if (key === 'ArrowLeft' || key === 37) {
-        prev();
-    }
-    else if (key === 'ArrowRight' || key === 39) {
-        next();
-    }
-},false);
-
 function currentPage() {
     return document.currentPages.length;
 }
@@ -358,14 +346,8 @@ function onLoad() {
     for (let i=0;i<document.nextTextNodes.length;i++) {
         let node = document.nextTextNodes[i];
         let father = node.parentNode;
-        /*Object.defineProperty(node,'previousNodeFather',{
-            value: father,
-            writable: true
-        });*/
         node.style.display="none";
     }
     next();
-
-    //document.body.style.textOverflow="ellipsis";
 }
 
