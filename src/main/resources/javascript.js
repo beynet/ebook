@@ -41,18 +41,32 @@ function partlyVisible(el) {
     );
 }
 
+function isTextNode(node) {
+    if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3'|| node.tagName=='H4'||node.tagName=='IMG') {
+        return true;
+    }
+    return false;
+}
+
+function containsTextNode(result) {
+    for (let i=0;i<result.length;i++){
+        let node = result[i];
+        if (isTextNode(node)) return true;
+    }
+    return false;
+}
 
 function getTextNodes(textNodes,element){
     let nodes = element.childNodes;
     let i;
     for (i=0;i<nodes.length;i++) {
         let node = nodes[i];
-        if (node.tagName=='P' || node.tagName=='H1'||node.tagName=='H2'|| node.tagName=='H3'|| node.tagName=='H4'||node.tagName=='IMG') {
+        if (isTextNode(node)) {
             textNodes.push(node);
         }
         else if (node.tagName=='DIV') {
             let result=getTextNodes([],node);
-            if (result.length==0) {
+            if (result.length==0 || !containsTextNode(result)) {
                 textNodes.push(node);
             }
             else {
@@ -221,7 +235,6 @@ function customPrev() {
     let currentPage = document.currentPages[document.currentPages.length-1];
     // current page start with partial text
     if (currentPage.partialText!=null) {
-
         let previousSameNode = false;
         if (document.currentPages.length>1) {
             let previousPage = document.currentPages[document.currentPages.length-2];
@@ -230,7 +243,7 @@ function customPrev() {
             }
         }
         if (previousSameNode===false) {
-            // TODO : only remove if same node not in previous as partial node
+
             let c = currentPage.partialNode.childNodes;
             for (let j = c.length - 1; j >= 0; j--) {
                 currentPage.partialNode.removeChild(c[j]);
@@ -242,6 +255,9 @@ function customPrev() {
     }
     for (let j=currentPage.pages.length-1;j>=0;j--) {
         let node = currentPage.pages[j];
+        if (j==0){
+            restorePrevCibling(node);
+        }
         node.style.display="none";
         document.nextTextNodes.unshift(node);
         document.previousTextNodes.splice(document.previousTextNodes.indexOf(node),1);
@@ -257,15 +273,45 @@ function customPrev() {
         let node = currentPage.pages[j];
         node.style.display="";
     }
+    currentPage.pages[0].scrollIntoView(true);
 
     if (currentPage.partialText!=null) {
         document.partialOffset = currentPage.partialOffset;
         document.partialText = currentPage.partialText;
         document.partialNode = currentPage.partialNode;
         document.partialNode.style.display="";
-        addWordsReverse(currentPage.partialNode,document.partialOffset);
+        addWordsReverse(document.partialNode,document.partialOffset);
+        console.log("restore ="+document.partialNode+" text="+document.partialNode.textContent);
     }
-    currentPage.pages[0].scrollIntoView(true);
+
+}
+
+function hideAllPrevCibling(node) {
+    let father = node.parentNode;
+    let childNodes = father.childNodes;
+    for (let i=0;i<childNodes.length;i++) {
+        let previous = childNodes.item(i);
+        if (previous===node) break;
+        if (previous.style) previous.style.display="none";
+    }
+    if (father!==document.body) hideAllPrevCibling(father);
+}
+
+function restoreParent(node) {
+    let father = node.parentNode;
+    father.style.display="";
+    if (father!==document.body) restoreParent(father);
+}
+
+function restorePrevCibling(node) {
+    let father = node.parentNode;
+    let childNodes = father.childNodes;
+    for (let i=0;i<childNodes.length;i++) {
+        let previous = childNodes.item(i);
+        if (previous===node) break;
+        if (previous.style) previous.style.display="";
+    }
+    if (father!==document.body) restorePrevCibling(father);
 }
 
 function customNext() {
@@ -279,6 +325,7 @@ function customNext() {
     let toRemove=[];
     if (document.partialText!==null) {
         firstNode = false;
+        hideAllPrevCibling(document.partialNode);
         document.partialNode.scrollIntoView(true);
         let total=addWords(document.partialNode,document.partialOffset);
 
@@ -300,6 +347,7 @@ function customNext() {
         let node =document.nextTextNodes[i];
         node.style.display="";
         if (firstNode==true) {
+            hideAllPrevCibling(node);
             firstInPage = true ;
             firstNode=false;
             node.scrollIntoView(true);
@@ -361,3 +409,14 @@ function getRatio() {
 }
 
 
+document.addEventListener('keydown',  (event) =>{
+
+
+    var key = event.key || event.keyCode;
+    if (key === 'ArrowLeft' || key === 37) {
+        prev();
+    }
+    else if (key === 'ArrowRight' || key === 39) {
+        next();
+    }
+},false);
