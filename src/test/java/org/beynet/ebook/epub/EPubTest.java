@@ -1190,7 +1190,7 @@ public class EPubTest extends AbstractTests {
                 "\t}\n" +
                 "\t\n" +
                 "\t.answer {\n" +
-                "\t}";
+                "\t}\n";
 
         assertEquals(defaultCSS,eBook.getDefaultCSS().get());
     }

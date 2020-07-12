@@ -167,8 +167,8 @@ public class EBookMain {
     }
 
     public static void main(String[] args ) throws IOException {
-        Configurator.initialize(new DefaultConfiguration());
-        Configurator.setRootLevel(Level.DEBUG);
+        //Configurator.initialize(new DefaultConfiguration());
+        //Configurator.setRootLevel(Level.DEBUG);
         analyser.analyseCommandLine(args);
         if (sort.isOptionFound()) {
             sort();
