@@ -46,6 +46,8 @@ public class EBookGUI extends Application {
     private boolean smartDisplayMode = true ;
     private final static String CONF_FILE_NAME ="ebooks.ini";
     private final static String CURRENT_EBOOK_PATH ="CurrentEbookPath";
+    private final static String CURRENT_WIDTH ="WIDTH";
+    private final static String CURRENT_HEIGHT ="HEIGHT";
     private Properties properties = null;
     private Path propertyFilePath = null ;
 
@@ -131,11 +133,20 @@ public class EBookGUI extends Application {
         logger.info("page ratio=" + page.toString());
     }
 
+    private void saveCurrentSceneSize() {
+        double height = currentScene.getHeight();
+        double width = currentScene.getWidth();
+        getProperties().put(CURRENT_HEIGHT,Double.valueOf(height).toString());
+        getProperties().put(CURRENT_WIDTH,Double.valueOf(width).toString());
+        saveProperties();
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
 
         this.currentStage = stage ;
         currentStage.setOnCloseRequest((t) -> {
+            saveCurrentSceneSize();
             currentEBook.ifPresent(b->{
                 saveCurrentPageRatio();
             });
@@ -150,8 +161,12 @@ public class EBookGUI extends Application {
         }
         Group group = new Group();
 
-
-        currentScene = new Scene(group, 640, 480);
+        if (getProperties().getProperty(CURRENT_HEIGHT)!=null && getProperties().getProperty(CURRENT_WIDTH)!=null) {
+            currentScene = new Scene(group, Double.valueOf(getProperties().getProperty(CURRENT_WIDTH)), Double.valueOf(getProperties().getProperty(CURRENT_HEIGHT)));
+        }
+        else {
+            currentScene = new Scene(group, 640, 480);
+        }
 
         VBox mainVBOX = new VBox();
         mainVBOX.prefHeightProperty().bind(currentScene.heightProperty());
