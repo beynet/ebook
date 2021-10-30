@@ -3,5 +3,5 @@
         attributeFormDefault = XmlNsForm.UNQUALIFIED)
 package org.beynet.ebook.epub.oasis.container;
 
-import javax.xml.bind.annotation.XmlNsForm;
-import javax.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlNsForm;
+import jakarta.xml.bind.annotation.XmlSchema;

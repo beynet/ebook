@@ -1,6 +1,6 @@
 package org.beynet.ebook.epub.opf;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlAttribute;
 
 public class ItemRef {
 

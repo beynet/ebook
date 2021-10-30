@@ -1,8 +1,9 @@
 package org.beynet.ebook.epub.opf;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
+
 import java.util.Optional;
 
 @XmlRootElement(name="package")

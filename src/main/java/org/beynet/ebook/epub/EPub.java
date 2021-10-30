@@ -1,5 +1,8 @@
 package org.beynet.ebook.epub;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.beynet.ebook.AbstractEBook;
@@ -11,9 +14,6 @@ import org.beynet.ebook.epub.opf.Item;
 import org.beynet.ebook.epub.opf.ItemRef;
 import org.beynet.ebook.epub.opf.Package;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
