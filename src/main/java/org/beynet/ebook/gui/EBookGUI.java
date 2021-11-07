@@ -174,6 +174,14 @@ public class EBookGUI extends Application {
 
         // next button and previous button in the top
         HBox htop = new HBox();
+
+        Button openLibrary = new Button("library");
+        openLibrary.setTooltip(new Tooltip("open ebook library"));
+        openLibrary.setOnAction(event -> {
+            LibaryWindow libaryWindow = new LibaryWindow(currentStage,Double.valueOf(200),Double.valueOf(400));
+            libaryWindow.show();
+        });
+
         Button firstPage = new Button("first page");
         firstPage.setTooltip(new Tooltip("first page"));
         firstPage.setOnAction(event -> {
@@ -260,7 +268,7 @@ public class EBookGUI extends Application {
             currentEBook.ifPresent(e->e.saveSmartDisplayMode(smartDisplayMode));
         });
 
-        htop.getChildren().addAll(firstPage,previousPage,nextPage,nextInPage,prevInPage,minus,plus,openEBook,nightModeButton,smartDisplay);
+        htop.getChildren().addAll(openLibrary,firstPage,previousPage,nextPage,nextInPage,prevInPage,minus,plus,openEBook,nightModeButton,smartDisplay);
 
         mainVBOX.getChildren().add(htop);
 

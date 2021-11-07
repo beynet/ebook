@@ -1,10 +1,7 @@
 package org.beynet.ebook;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.beynet.ebook.gui.EBookGUI;
 import org.beynet.utils.admin.commandline.BooleanOption;
 import org.beynet.utils.admin.commandline.CommandLineOptionsAnalyzer;

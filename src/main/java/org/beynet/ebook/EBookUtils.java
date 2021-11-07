@@ -43,7 +43,7 @@ public class EBookUtils {
                 try {
                     eBook = EBookFactory.createEBook(file);
                 } catch (IOException e) {
-                    logger.info("unable to sort file "+file.toString());
+                    logger.info("unable to sort file "+file.toString(),e);
                     return FileVisitResult.CONTINUE;
                 }
                 if (eBook.isProtected()) logger.warn("ebook "+eBook.getPath().toString()+" is protected");
@@ -66,4 +66,6 @@ public class EBookUtils {
             }
         });
     }
+
+
 }
