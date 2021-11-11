@@ -1,5 +1,8 @@
 package org.beynet.ebook.gui;
 
+import java.util.Optional;
+
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -50,8 +53,14 @@ public class FolderTreeNode implements EBookOrFolderTreeNode {
 
     }
 
+    @Override
+    public Optional<ContextMenu> getContextMenu() {
+        return Optional.empty();
+    }
+
     private String folderName;
     private ImageView imageView;
     private static final Image folder = new Image(EBookOrFolderTreeNode.class.getResourceAsStream("/Folder.png"));
     private static final Image folderOpen = new Image(EBookOrFolderTreeNode.class.getResourceAsStream("/Folder_Open.png"));
+    
 }

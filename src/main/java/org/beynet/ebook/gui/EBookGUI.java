@@ -178,7 +178,7 @@ public class EBookGUI extends Application {
         Button openLibrary = new Button("library");
         openLibrary.setTooltip(new Tooltip("open ebook library"));
         openLibrary.setOnAction(event -> {
-            LibaryWindow libaryWindow = new LibaryWindow(currentStage,Double.valueOf(200),Double.valueOf(400));
+            LibaryWindow libaryWindow = new LibaryWindow(currentStage,Double.valueOf(430),Double.valueOf(600),this::openEBook);
             libaryWindow.show();
         });
 
@@ -365,11 +365,7 @@ public class EBookGUI extends Application {
                 try {
                     Path path = result.toPath();
                     EBook eBook = EBookFactory.createEBook(path);
-                    Platform.runLater(() -> {
-                        this.currentEBook = Optional.of(eBook);
-                        saveCurrenEbook();
-                        loadEBook();
-                    });
+                    openEBook(eBook);
                 } catch (Exception e) {
                     logger.error("unable to load ebook", e);
                 }
@@ -382,6 +378,14 @@ public class EBookGUI extends Application {
 
         currentStage.setScene(currentScene);
         currentStage.show();
+    }
+
+    public void openEBook(EBook ebook) {
+        Platform.runLater(() -> {
+            this.currentEBook = Optional.of(ebook);
+            saveCurrenEbook();
+            loadEBook();
+        });
     }
 
     private Optional<String> readInputStream(InputStream input)  {

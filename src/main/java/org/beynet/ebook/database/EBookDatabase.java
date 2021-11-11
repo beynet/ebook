@@ -56,6 +56,11 @@ public class EBookDatabase {
     }
 
 
+    public void clear() throws IOException {
+        writer.deleteAll();
+        writer.commit();
+    }
+
     public void indexePath(Path pathToIndex) throws IOException {
         Files.walkFileTree(pathToIndex, new FileVisitor<Path>() {
 
@@ -114,7 +119,7 @@ public class EBookDatabase {
         document.add(authorField);
 
         Field textFiled = new TextField(FIELD_TEXT, ebook.getAuthor().orElse("").concat(" ").concat(ebook.getTitle().orElse("")), Field.Store.YES);
-        document.add(authorField);
+        document.add(textFiled);
 
         for (String subject : ebook.getSubjects()) {
             Field subjectField = new StringField(FIELD_SUBJECT, subject, Field.Store.YES);
@@ -131,6 +136,44 @@ public class EBookDatabase {
         return DirectoryReader.open(writer,true,true);
     }
 
+    public List<EBook> list(String query) throws IOException {
+        if (query==null || "".equals(query)) {
+            return list();
+        }
+        else {
+            List<EBook> result = new ArrayList<>();
+            final IndexReader reader = createReader();
+            try {
+                IndexSearcher searcher = new IndexSearcher(reader);
+                BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
+
+                Query patternQuery = new WildcardQuery(new Term(FIELD_TEXT, "*" + query + "*"));
+                booleanQueryBuilder.add(patternQuery, BooleanClause.Occur.MUST);
+
+               
+                TopScoreDocCollector collector = TopScoreDocCollector.create(1000, 1000);
+
+                searcher.search(booleanQueryBuilder.build(), collector);
+                ScoreDoc[] hits = collector.topDocs().scoreDocs;
+
+                for (int i = 0; i < hits.length; ++i) {
+                    int docId = hits[i].doc;
+                    Document d = searcher.doc(docId);
+                    result.add(ebookFromDocument(d));
+                }
+                return result;
+            } finally {
+                reader.close();
+            }
+        }
+    }
+
+    private EBook ebookFromDocument(Document d) {
+        List<String> subjects = Arrays.stream(d.getValues(FIELD_SUBJECT)).toList();
+        IndexedEBook indexed = new IndexedEBook(d.get(FIELD_ID), d.get(FIELD_PATH), d.get(FIELD_AUTHOR),
+                d.get(FIELD_TITLE), subjects);
+        return indexed;
+    }
 
     public List<EBook> list() throws IOException {
         List<EBook> result = new ArrayList<>();
@@ -154,15 +197,7 @@ public class EBookDatabase {
                 for (int i = 0; i < results.length; ++i) {
                     int docId = results[i].doc;
                     Document d = searcher.doc(docId);
-
-                    List<String> subjects = Arrays.stream(d.getValues(FIELD_SUBJECT)).toList();
-                    IndexedEBook indexed = new IndexedEBook(
-                            d.get(FIELD_ID),
-                            d.get(FIELD_PATH),
-                            d.get(FIELD_AUTHOR),
-                            d.get(FIELD_TITLE),
-                            subjects);
-                    result.add(indexed);
+                    result.add(ebookFromDocument(d));
 
                 }
             }

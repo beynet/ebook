@@ -1,6 +1,9 @@
 package org.beynet.ebook.gui;
 
+import java.util.Optional;
+
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
 
@@ -18,4 +21,6 @@ public interface EBookOrFolderTreeNode {
     //void display(Consumer<Password> selectedPasswordChange);
 
     void setExpanded(Boolean newValue);
+
+    Optional<ContextMenu> getContextMenu();
 }
