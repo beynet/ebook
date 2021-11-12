@@ -12,6 +12,8 @@ public interface EBookOrFolderTreeNode {
 
     String getText();
 
+    Optional<String> getTooltip();
+
     boolean match(Object o);
 
     void remove(TreeItem<EBookOrFolderTreeNode> parent, TreeItem<EBookOrFolderTreeNode> itemSelected);

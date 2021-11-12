@@ -1,5 +1,6 @@
 package org.beynet.ebook.gui;
 
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeCell;
 
 
@@ -15,6 +16,7 @@ public class EBookTreeCell extends TreeCell<EBookOrFolderTreeNode> {
             if (item!=null) {
                 setGraphic(item.getImageView());
                 setText(item.getText());
+                item.getTooltip().ifPresentOrElse(s->setTooltip(new Tooltip(s)), ()->setTooltip(null));
             }
         }
     }

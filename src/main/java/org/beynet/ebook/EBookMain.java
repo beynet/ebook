@@ -26,6 +26,7 @@ public class EBookMain {
     final static StringOption removeSubject = new StringOption("--removeSubject", "remove the subject from target subjects", false);
     final static StringOption changeAuthor = new StringOption("--changeAuthor", "change target ebook author", false);
     final static BooleanOption info = new BooleanOption("--info", "show info about target ebook");
+    final static BooleanOption help = new BooleanOption("--help", "show help");
 
     final static List<Option> options = Arrays.asList(
             sort,
@@ -35,7 +36,8 @@ public class EBookMain {
             removeSubject,
             changeAuthor,
             gui,
-            info
+            info,
+            help
     );
 
     static final CommandLineOptionsAnalyzer analyser = new CommandLineOptionsAnalyzer(options);
@@ -167,7 +169,10 @@ public class EBookMain {
         //Configurator.initialize(new DefaultConfiguration());
         //Configurator.setRootLevel(Level.DEBUG);
         analyser.analyseCommandLine(args);
-        if (sort.isOptionFound()) {
+        if (help.isOptionFound()) {
+            printHelp();
+        }
+        else if (sort.isOptionFound()) {
             sort();
         }
         else if (info.isOptionFound()) {

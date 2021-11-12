@@ -39,6 +39,11 @@ public class FolderTreeNode implements EBookOrFolderTreeNode {
     }
 
     @Override
+    public Optional<String> getTooltip() {
+        return Optional.empty();
+    }
+
+    @Override
     public boolean match(Object o) {
         return folderName.equals(o);
     }
