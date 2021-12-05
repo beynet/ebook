@@ -1,5 +1,17 @@
 body {
     /*overflow-x: hidden;
-    overflow-y: hidden;*/
+    overflow-y: hidden;
     padding-right: 1em;
+    padding-left: 1em;
+    padding-left: 10px;
+    padding-right: 10px;*/
+    margin:0;
+}
+p {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+div {
+    padding-left: 10px;
+    padding-right: 10px;
 }

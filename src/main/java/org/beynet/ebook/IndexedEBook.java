@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class IndexedEBook implements EBook {
 
@@ -27,14 +28,20 @@ public class IndexedEBook implements EBook {
         this.subjects.addAll(subjects);
     }
 
+
+    @Override
+    public void index(Consumer<EBook> index, Runnable postIndex) {
+        // no indexation supported
+    }
+
     @Override
     public Optional<String> getAuthor() {
-        return Optional.of(author);
+        return Optional.ofNullable(author);
     }
 
     @Override
     public Optional<String> getTitle() {
-        return Optional.of(title);
+        return Optional.ofNullable(title);
     }
 
     @Override

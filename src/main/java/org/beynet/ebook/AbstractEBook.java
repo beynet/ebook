@@ -10,6 +10,7 @@ import java.nio.file.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class AbstractEBook implements EBook {
@@ -22,6 +23,12 @@ public abstract class AbstractEBook implements EBook {
         this.propertyFilePath = Optional.empty();
     }
 
+
+    @Override
+    public void index(Consumer<EBook> index, Runnable postIndex) {
+        index.accept(this);
+        postIndex.run();
+    }
     protected Properties getProperties() {
         synchronized (this) {
             if (this.properties == null) {

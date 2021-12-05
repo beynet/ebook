@@ -7,6 +7,6 @@ import org.apache.logging.log4j.core.config.DefaultConfiguration;
 public class AbstractTests {
     static {
         Configurator.initialize(new DefaultConfiguration());
-        Configurator.setRootLevel(Level.INFO);
+        Configurator.setRootLevel(Level.DEBUG);
     }
 }

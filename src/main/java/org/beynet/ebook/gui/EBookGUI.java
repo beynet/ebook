@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EBookFactory;
 import org.beynet.ebook.EBookUtils;
+import org.beynet.ebook.model.EBookDatabase;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -150,6 +151,7 @@ public class EBookGUI extends Application {
             currentEBook.ifPresent(b->{
                 saveCurrentPageRatio();
             });
+            quitApp();
         });
         Parameters parameters = getParameters();
         if (!parameters.getRaw().isEmpty()) {
@@ -378,6 +380,10 @@ public class EBookGUI extends Application {
 
         currentStage.setScene(currentScene);
         currentStage.show();
+    }
+
+    private void quitApp() {
+        EBookDatabase.getInstance().stopWatchService();
     }
 
     public void openEBook(EBook ebook) {

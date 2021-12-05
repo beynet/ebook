@@ -1,8 +1,20 @@
 package org.beynet.ebook.epub;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.beynet.ebook.AbstractEBook;
@@ -14,11 +26,9 @@ import org.beynet.ebook.epub.opf.Item;
 import org.beynet.ebook.epub.opf.ItemRef;
 import org.beynet.ebook.epub.opf.Package;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.nio.file.*;
-import java.util.*;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 
 public class EPub extends AbstractEBook implements EBook {
 
@@ -385,7 +395,7 @@ public class EPub extends AbstractEBook implements EBook {
     private String           opfDocumentPath;
     private Optional<String> currentItem ;
 
-    private final static String XHTML="application/xhtml+xml";
+    //private final static String XHTML="application/xhtml+xml";
     private final static String CSS="text/css";
     private final static Logger logger = LogManager.getLogger(EPub.class);
 

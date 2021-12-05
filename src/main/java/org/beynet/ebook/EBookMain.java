@@ -1,8 +1,12 @@
 package org.beynet.ebook;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.beynet.ebook.gui.EBookGUI;
+import org.beynet.ebook.model.EBookDatabase;
 import org.beynet.utils.admin.commandline.BooleanOption;
 import org.beynet.utils.admin.commandline.CommandLineOptionsAnalyzer;
 import org.beynet.utils.admin.commandline.Option;
@@ -157,6 +161,7 @@ public class EBookMain {
     }
 
     private static void displayEbook() {
+        EBookDatabase.getInstance().startWatchService();
         if (target.isOptionFound()) {
             EBookGUI.main(Paths.get(target.getValue()));
         }
@@ -166,8 +171,8 @@ public class EBookMain {
     }
 
     public static void main(String[] args ) throws IOException {
-        //Configurator.initialize(new DefaultConfiguration());
-        //Configurator.setRootLevel(Level.DEBUG);
+        Configurator.initialize(new DefaultConfiguration());
+        Configurator.setRootLevel(Level.DEBUG);
         analyser.analyseCommandLine(args);
         if (help.isOptionFound()) {
             printHelp();

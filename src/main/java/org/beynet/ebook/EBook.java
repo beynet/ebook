@@ -6,6 +6,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Hello world!
@@ -45,6 +46,13 @@ public interface EBook {
      * @return true if current ebook is protected, just like epub with DRM
      */
     boolean isProtected();
+
+    /**
+     * 
+     * @param index indexation method
+     * @param postIndex post indexation method
+     */
+    void index(Consumer<EBook> index,Runnable postIndex);
 
     /**
      * copy current ebook to target directory

@@ -10,9 +10,10 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.beynet.ebook.EBook;
-import org.beynet.ebook.database.EBookDatabase;
+import org.beynet.ebook.model.EBookDatabase;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,10 +71,44 @@ public class EbookTree extends TreeView<EBookOrFolderTreeNode> {
         });
     }
 
+    public void reloadEbook(EBook ebook) {
+        TreeItem<EBookOrFolderTreeNode> eBookItem=cellsByPath.get(ebook.getPath());
+        if (eBookItem!=null) eBookItem.getParent().getChildren().remove(eBookItem);
+        addEBook(getRoot(),ebook);
+    }
+
+    public void deleteEBook(Path path) {
+        TreeItem<EBookOrFolderTreeNode> eBookItem=cellsByPath.get(path);
+        if (eBookItem!=null) eBookItem.getParent().getChildren().remove(eBookItem);
+    }
+
+    private void addEBook(TreeItem<EBookOrFolderTreeNode> rootTreeItem,EBook ebook) {
+        TreeItem<EBookOrFolderTreeNode> eBookItem = new TreeItem<>(new EBookTreeNode(ebook,open));
+        cellsByPath.put(ebook.getPath(),eBookItem);
+        String subject = ebook.getSubjects().stream().findFirst().orElse("Undefined");
+        TreeItem<EBookOrFolderTreeNode> subjectNode = subjectsCells.get(subject);
+        if (subjectNode == null) {
+            subjectNode = new TreeItem<>(new FolderTreeNode(subject));
+            authorBySubjectCells.put(subjectNode, new HashMap<>());
+            subjectsCells.put(subject, subjectNode);
+            rootTreeItem.getChildren().add(subjectNode);
+        }
+        String author = ebook.getAuthor().orElse("Undefined");
+        Map<String, TreeItem<EBookOrFolderTreeNode>> authorsMap = authorBySubjectCells.get(subjectNode);
+        TreeItem<EBookOrFolderTreeNode> authorNode = authorsMap.get(author);
+        if (authorNode == null) {
+            authorNode = new TreeItem<>(new FolderTreeNode(author));
+            authorsMap.put(author, authorNode);
+            subjectNode.getChildren().add(authorNode);
+        }
+        authorNode.getChildren().add(eBookItem);
+    }
+
     public void display() {
 
         subjectsCells = new HashMap<>();
         authorBySubjectCells = new HashMap<>();
+        cellsByPath = new HashMap<>();
 
         TreeItem<EBookOrFolderTreeNode> rootTreeItem = new TreeItem<>(new FolderTreeNode("EBooks"));
         rootTreeItem.setExpanded(true);
@@ -84,24 +119,7 @@ public class EbookTree extends TreeView<EBookOrFolderTreeNode> {
         try {
             List<EBook> ebooks = EBookDatabase.getInstance().list(query);
             for (EBook ebook : ebooks) {
-                TreeItem<EBookOrFolderTreeNode> eBookItem = new TreeItem<>(new EBookTreeNode(ebook,open));
-                String subject = ebook.getSubjects().stream().findFirst().orElse("Undefined");
-                TreeItem<EBookOrFolderTreeNode> subjectNode = subjectsCells.get(subject);
-                if (subjectNode == null) {
-                    subjectNode = new TreeItem<>(new FolderTreeNode(subject));
-                    authorBySubjectCells.put(subjectNode, new HashMap<>());
-                    subjectsCells.put(subject, subjectNode);
-                    rootTreeItem.getChildren().add(subjectNode);
-                }
-                String author = ebook.getAuthor().orElse("Undefined");
-                Map<String, TreeItem<EBookOrFolderTreeNode>> authorsMap = authorBySubjectCells.get(subjectNode);
-                TreeItem<EBookOrFolderTreeNode> authorNode = authorsMap.get(author);
-                if (authorNode == null) {
-                    authorNode = new TreeItem<>(new FolderTreeNode(author));
-                    authorsMap.put(author, authorNode);
-                    subjectNode.getChildren().add(authorNode);
-                }
-                authorNode.getChildren().add(eBookItem);
+                addEBook(rootTreeItem,ebook);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,8 +128,12 @@ public class EbookTree extends TreeView<EBookOrFolderTreeNode> {
         setShowRoot(true);
     }
 
-    private Map<String, TreeItem<EBookOrFolderTreeNode>> subjectsCells;
+    private Map<Path,TreeItem<EBookOrFolderTreeNode>>                                          cellsByPath ;
+    private Map<String, TreeItem<EBookOrFolderTreeNode>>                                       subjectsCells;
     private Map<TreeItem<EBookOrFolderTreeNode>, Map<String, TreeItem<EBookOrFolderTreeNode>>> authorBySubjectCells;
+
     private Consumer<EBook> open;
     private String query;
+
+
 }

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class UnsupportedEBook extends AbstractEBook implements EBook {
 
@@ -23,6 +24,12 @@ public class UnsupportedEBook extends AbstractEBook implements EBook {
     @Override
     public Optional<String> getTitle() {
         return Optional.empty();
+    }
+
+
+    @Override
+    public void index(Consumer<EBook> index, Runnable r) {
+        // indexation not supported
     }
 
     @Override
