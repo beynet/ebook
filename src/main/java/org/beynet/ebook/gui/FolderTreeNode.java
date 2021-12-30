@@ -59,7 +59,7 @@ public class FolderTreeNode implements EBookOrFolderTreeNode {
     }
 
     @Override
-    public Optional<ContextMenu> getContextMenu() {
+    public Optional<ContextMenu> getContextMenu(Stage stage) {
         return Optional.empty();
     }
 

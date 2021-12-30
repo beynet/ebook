@@ -2,7 +2,7 @@ package org.beynet.ebook.model;
 
 import java.nio.file.Path;
 
-public class EBookDeleted  implements Event{
+public class EBookDeleted  implements Event {
 
     public EBookDeleted(Path p){
         this.path = p;

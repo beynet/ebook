@@ -21,13 +21,13 @@ public abstract class Dialog  extends Stage {
         }else {
             scene = new Scene(root);
         }
-        scene.getStylesheets().add(getClass().getResource("/default.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/jfxdefault.css").toExternalForm());
         root.getStyleClass().add(Styles.CHILD_WINDOW);
 
         setScene(scene);
 
-        setX(parent.getX() + parent.getWidth() /2);
-        setY(parent.getY() + parent.getHeight()/2);
+        setX(parent.getX() + parent.getWidth() /3);
+        setY(parent.getY() + parent.getHeight()/3);
         initOwner(parent);
 
     }

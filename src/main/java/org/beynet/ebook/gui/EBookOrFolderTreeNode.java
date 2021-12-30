@@ -24,5 +24,5 @@ public interface EBookOrFolderTreeNode {
 
     void setExpanded(Boolean newValue);
 
-    Optional<ContextMenu> getContextMenu();
+    Optional<ContextMenu> getContextMenu(Stage stage);
 }

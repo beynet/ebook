@@ -126,7 +126,6 @@ public class EBookDatabase extends Observable {
 
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    indexeDirectory(dir);
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -223,8 +222,12 @@ public class EBookDatabase extends Observable {
         Field authorField = new TextField(FIELD_AUTHOR, ebook.getAuthor().orElse(""), Field.Store.YES);
         document.add(authorField);
 
-        Field textFiled = new TextField(FIELD_TEXT,
-                ebook.getAuthor().orElse("").concat(" ").concat(ebook.getTitle().orElse("")), Field.Store.YES);
+        String text = ebook.getAuthor().orElse("").concat(" ").concat(ebook.getTitle().orElse(""));
+        if (!ebook.getSubjects().isEmpty()) {
+            text = text.concat(" ").concat(ebook.getSubjects().get(0));
+        }
+        Field textFiled = new TextField(FIELD_TEXT,text
+                , Field.Store.YES);
         document.add(textFiled);
 
         for (String subject : ebook.getSubjects()) {
@@ -267,6 +270,7 @@ public class EBookDatabase extends Observable {
                 for (int i = 0; i < hits.length; ++i) {
                     int docId = hits[i].doc;
                     Document d = searcher.doc(docId);
+                    if (d.get(FIELD_ROOT_PATH).equals("true")) continue;
                     result.add(ebookFromDocument(d));
                 }
                 return result;
@@ -317,7 +321,9 @@ public class EBookDatabase extends Observable {
                     Document d = searcher.doc(docId);
                     if (!"true".equals(d.get(FIELD_ROOT_PATH)))
                         continue;
-                    result.add(Paths.get(d.get(FIELD_PATH)));
+                    Path path = Paths.get(d.get(FIELD_PATH));
+                    result.add(path);
+                    logger.info("indexed folder "+path.toString());
                 }
             }
             return result;
@@ -327,6 +333,19 @@ public class EBookDatabase extends Observable {
     }
 
     public void startWatchService() {
+        /*try {
+            List<Path> toIndex = listIndexedFolder();
+            clearIndexes();
+            toIndex.forEach(p -> {
+                try {
+                    indexeDirectory(p);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch(IOException e) {
+            logger.error("error when reconstructing indexes");
+        }*/
         Runnable r = () -> {
 
             try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
@@ -341,8 +360,39 @@ public class EBookDatabase extends Observable {
                         }
                         watched.clear();
                         needToReload = false ;
-                        List<Path> folders = listIndexedFolder();
-                        folders.forEach(p -> {
+                        List<Path> indexedFolders = listIndexedFolder();
+                        List<Path> allFolders = new ArrayList<>();
+                        //allFolders.addAll(indexedFolders);
+                        // add all child off indexed folders to directories to be watched
+                        indexedFolders.forEach(p->{
+                            try {
+                                Files.walkFileTree(p, new FileVisitor<Path>() {
+                                    @Override
+                                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                                        allFolders.add(dir);
+                                        return FileVisitResult.CONTINUE;
+                                    }
+
+                                    @Override
+                                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                                        return FileVisitResult.CONTINUE;
+                                    }
+
+                                    @Override
+                                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                                        return FileVisitResult.CONTINUE;
+                                    }
+
+                                    @Override
+                                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                                        return FileVisitResult.CONTINUE;
+                                    }
+                                });
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                        allFolders.forEach(p -> {
                             try {
                                 logger.info("will watch " + p.toString());
                                 WatchKey register = p.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
@@ -454,7 +504,7 @@ public class EBookDatabase extends Observable {
                 for (int i = 0; i < results.length; ++i) {
                     int docId = results[i].doc;
                     Document d = searcher.doc(docId);
-                    if (d.get(FIELD_ROOT_PATH) == "true")
+                    if (d.get(FIELD_ROOT_PATH).equals("true"))
                         continue;
                     result.add(ebookFromDocument(d));
                 }

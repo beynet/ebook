@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EBookFactory;
+import org.beynet.ebook.utils.I18NHelper;
 
 public class EBookTreeNode implements EBookOrFolderTreeNode {
 
@@ -60,12 +61,14 @@ public class EBookTreeNode implements EBookOrFolderTreeNode {
     }
 
     @Override
-    public Optional<ContextMenu> getContextMenu() {
+    public Optional<ContextMenu> getContextMenu(Stage stage) {
         final ContextMenu ctxMenu = new ContextMenu();
         final MenuItem openNote = new MenuItem("open");
         final MenuItem copyPath = new MenuItem("copyPath");
+        final MenuItem changeSubject = new MenuItem(I18NHelper.getLabelResourceBundle().getString("changeSubject"));
         ctxMenu.getItems().add(openNote);
-        ctxMenu.getItems().addAll(copyPath);
+        ctxMenu.getItems().add(copyPath);
+        ctxMenu.getItems().add(changeSubject);
         openNote.setOnAction(evt -> {
             try {
                 open.accept(EBookFactory.createEBook(ebook.getPath()));
@@ -78,6 +81,14 @@ public class EBookTreeNode implements EBookOrFolderTreeNode {
             final ClipboardContent content = new ClipboardContent();
             content.putString(ebook.getPath().toString());
             clipboard.setContent(content);
+        });
+
+        changeSubject.setOnAction(evt->{
+            try {
+                new EbookSubject(EBookFactory.createEBook(ebook.getPath()),stage,Double.valueOf(200),Double.valueOf(100)).show();
+            } catch (IOException e) {
+
+            }
         });
 
         return Optional.of(ctxMenu);

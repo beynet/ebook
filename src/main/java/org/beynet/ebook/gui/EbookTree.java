@@ -38,7 +38,7 @@ public class EbookTree extends TreeView<EBookOrFolderTreeNode> {
                 int selectedIndex = getSelectionModel().getSelectedIndex();
                 if (selectedIndex >= 0) {
                     TreeItem<EBookOrFolderTreeNode> itemSelected = getSelectionModel().getSelectedItem();
-                    Optional<ContextMenu> contextMenu = itemSelected.getValue().getContextMenu();
+                    Optional<ContextMenu> contextMenu = itemSelected.getValue().getContextMenu(parent);
                     contextMenu.ifPresent(m->m.show(this, mouseEvent.getScreenX(), mouseEvent.getScreenY()));
                 }
             }
@@ -73,13 +73,13 @@ public class EbookTree extends TreeView<EBookOrFolderTreeNode> {
 
     public void reloadEbook(EBook ebook) {
         TreeItem<EBookOrFolderTreeNode> eBookItem=cellsByPath.get(ebook.getPath());
-        if (eBookItem!=null) eBookItem.getParent().getChildren().remove(eBookItem);
+        if (eBookItem!=null && eBookItem.getParent()!=null) eBookItem.getParent().getChildren().remove(eBookItem);
         addEBook(getRoot(),ebook);
     }
 
     public void deleteEBook(Path path) {
         TreeItem<EBookOrFolderTreeNode> eBookItem=cellsByPath.get(path);
-        if (eBookItem!=null) eBookItem.getParent().getChildren().remove(eBookItem);
+        if (eBookItem!=null && eBookItem.getParent()!=null) eBookItem.getParent().getChildren().remove(eBookItem);
     }
 
     private void addEBook(TreeItem<EBookOrFolderTreeNode> rootTreeItem,EBook ebook) {
