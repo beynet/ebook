@@ -32,6 +32,8 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
@@ -57,7 +59,7 @@ public class EBookDatabase extends Observable {
         // create lucene index
         try {
             Directory dir = FSDirectory.open(database);
-            Analyzer analyzer = new StandardAnalyzer();
+            Analyzer analyzer = new MyAnalyser();
             IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 
             iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
@@ -226,9 +228,9 @@ public class EBookDatabase extends Observable {
         if (!ebook.getSubjects().isEmpty()) {
             text = text.concat(" ").concat(ebook.getSubjects().get(0));
         }
-        Field textFiled = new TextField(FIELD_TEXT,text
+        Field textField = new TextField(FIELD_TEXT,text
                 , Field.Store.YES);
-        document.add(textFiled);
+        document.add(textField);
 
         for (String subject : ebook.getSubjects()) {
             Field subjectField = new StringField(FIELD_SUBJECT, subject, Field.Store.YES);
@@ -257,9 +259,17 @@ public class EBookDatabase extends Observable {
             final IndexReader reader = createReader();
             try {
                 IndexSearcher searcher = new IndexSearcher(reader);
+                QueryParser parser = new QueryParser(FIELD_TEXT,new MyAnalyser());
                 BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
 
-                Query patternQuery = new WildcardQuery(new Term(FIELD_TEXT, "*" + query + "*"));
+                /*Query patternQuery = new WildcardQuery(new Term(FIELD_TEXT, "*" + query + "*"));*/
+                final Query patternQuery ;
+                try {
+                    patternQuery = parser.parse(query);
+                } catch (ParseException e) {
+                    logger.error("error in query",e);
+                    throw new IOException("error in query",e);
+                }
                 booleanQueryBuilder.add(patternQuery, BooleanClause.Occur.MUST);
 
                 TopScoreDocCollector collector = TopScoreDocCollector.create(1000, 1000);
