@@ -260,12 +260,13 @@ public class EBookDatabase extends Observable {
             try {
                 IndexSearcher searcher = new IndexSearcher(reader);
                 QueryParser parser = new QueryParser(FIELD_TEXT,new MyAnalyser());
+                parser.setAllowLeadingWildcard(true);
                 BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
 
                 /*Query patternQuery = new WildcardQuery(new Term(FIELD_TEXT, "*" + query + "*"));*/
                 final Query patternQuery ;
                 try {
-                    patternQuery = parser.parse(query);
+                    patternQuery = parser.parse("*".concat(query).concat("*"));
                 } catch (ParseException e) {
                     logger.error("error in query",e);
                     throw new IOException("error in query",e);
