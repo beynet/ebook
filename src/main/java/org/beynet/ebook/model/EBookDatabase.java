@@ -136,7 +136,24 @@ public class EBookDatabase extends Observable {
                     final EBook eBook;
                     try {
                         eBook = EBookFactory.createEBook(file);
-                        _indexe(eBook);
+                        eBook.index(
+                                (e)->{
+                                    try {
+                                        _indexe(e);
+                                    }catch(IOException ex)
+                                    {
+                                        throw new RuntimeException(ex);
+                                    }
+                                },
+                                ()->{
+                                    try {
+                                        writer.commit();
+                                    }catch(IOException ex)
+                                    {
+                                        throw new RuntimeException(ex);
+                                    }
+                                }
+                        );
                     } catch (Exception e) {
                         logger.error("unable to index file " + file.toString(), e);
                     }
@@ -203,7 +220,11 @@ public class EBookDatabase extends Observable {
     private void _indexe(EBook ebook) throws IOException {
 
         // unindex previous version
-        Term idTerm = new Term(FIELD_ID, ebook.getIdentifier().orElse(""));
+        String id = ebook.getIdentifier().orElse("");
+        id=id.stripTrailing();
+        if ("".equals(id)) id=ebook.getTitle().orElse("").concat(" ").concat(ebook.getAuthor().orElse(" "));
+
+        Term idTerm = new Term(FIELD_ID, id);
         Query query = new TermQuery(idTerm);
         writer.deleteDocuments(query);
 
@@ -212,7 +233,7 @@ public class EBookDatabase extends Observable {
         Field rootPath = new StringField(FIELD_ROOT_PATH, "false", Field.Store.YES);
         document.add(rootPath);
 
-        Field idField = new StringField(FIELD_ID, ebook.getIdentifier().orElse(""), Field.Store.YES);
+        Field idField = new StringField(FIELD_ID, id, Field.Store.YES);
         document.add(idField);
 
         Field pathField = new StringField(FIELD_PATH, ebook.getPath().toString(), Field.Store.YES);
