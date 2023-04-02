@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,9 +89,16 @@ public class EBookDatabase extends Observable {
      * @throws IOException
      */
     public void clearIndexes() throws IOException {
-        writer.deleteAll();
-        writer.commit();
-        needToReload = true;
+        try {
+            needToReload.set(true);
+            synchronized (watchServiceThread) {
+                watchServiceThread.wait();
+                writer.deleteAll();
+                writer.commit();
+            }
+        }catch(InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -146,12 +155,12 @@ public class EBookDatabase extends Observable {
                                     }
                                 },
                                 ()->{
-                                    try {
+                                    /*try {
                                         writer.commit();
                                     }catch(IOException ex)
                                     {
                                         throw new RuntimeException(ex);
-                                    }
+                                    }*/
                                 }
                         );
                     } catch (Exception e) {
@@ -172,7 +181,7 @@ public class EBookDatabase extends Observable {
             });
         } finally {
             writer.commit();
-            needToReload = true;
+            needToReload.set(true);
         }
     }
 
@@ -215,6 +224,7 @@ public class EBookDatabase extends Observable {
         Term pathTerm = new Term(FIELD_PATH, path.toString());
         Query query = new TermQuery(pathTerm);
         writer.deleteDocuments(query);
+        writer.commit();
     }
 
     private void _indexe(EBook ebook) throws IOException {
@@ -364,6 +374,28 @@ public class EBookDatabase extends Observable {
         }
     }
 
+
+    protected void addToWatchService(WatchService watchService,Path p){
+        try {
+            logger.info("will watch " + p.toString());
+            WatchKey register = p.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+            watched.put(register, p);
+        } catch (IOException e) {
+            logger.error("unable to watch path " + p.toString(), e);
+        }
+    }
+    protected void removeFromWatchService(WatchService watchService,Path p) {
+        if (p==null) throw new IllegalArgumentException();
+        for (Map.Entry<WatchKey, Path> watchKeyPathEntry : watched.entrySet()) {
+            if (p.equals(watchKeyPathEntry.getValue())) {
+                WatchKey key = watchKeyPathEntry.getKey();
+                key.cancel();
+                watched.remove(key);
+            }
+        }
+    }
+
     public void startWatchService() {
         /*try {
             List<Path> toIndex = listIndexedFolder();
@@ -384,109 +416,137 @@ public class EBookDatabase extends Observable {
 
                 while (!Thread.currentThread().isInterrupted()) {
 
-                    // if needToReload has been invoked
-                    if (needToReload==true) {
-                        logger.info("loading directories to watch");
-                        for (WatchKey watchKey : watched.keySet()) {
-                            watchKey.cancel();
+                        // if needToReload has been invoked
+                        if (needToReload.get() == true) {
+                            logger.info("loading directories to watch");
+                            for (WatchKey watchKey : watched.keySet()) {
+                                watchKey.cancel();
+                            }
+                            watched.clear();
+                            needToReload.set(false);
+                            List<Path> indexedFolders = listIndexedFolder();
+                            List<Path> allFolders = new ArrayList<>();
+                            //allFolders.addAll(indexedFolders);
+                            // add all child of indexed folders to directories to be watched
+                            indexedFolders.forEach(p -> {
+                                try {
+                                    Files.walkFileTree(p, new FileVisitor<Path>() {
+                                        @Override
+                                        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                                            allFolders.add(dir);
+                                            return FileVisitResult.CONTINUE;
+                                        }
+
+                                        @Override
+                                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                                            return FileVisitResult.CONTINUE;
+                                        }
+
+                                        @Override
+                                        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                                            return FileVisitResult.CONTINUE;
+                                        }
+
+                                        @Override
+                                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                                            return FileVisitResult.CONTINUE;
+                                        }
+                                    });
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            allFolders.forEach(p -> addToWatchService(watchService, p));
                         }
-                        watched.clear();
-                        needToReload = false ;
-                        List<Path> indexedFolders = listIndexedFolder();
-                        List<Path> allFolders = new ArrayList<>();
-                        //allFolders.addAll(indexedFolders);
-                        // add all child off indexed folders to directories to be watched
-                        indexedFolders.forEach(p->{
-                            try {
-                                Files.walkFileTree(p, new FileVisitor<Path>() {
-                                    @Override
-                                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                                        allFolders.add(dir);
-                                        return FileVisitResult.CONTINUE;
-                                    }
+                        logger.info("entering into loop");
 
-                                    @Override
-                                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                                        return FileVisitResult.CONTINUE;
-                                    }
 
-                                    @Override
-                                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                                        return FileVisitResult.CONTINUE;
-                                    }
-
-                                    @Override
-                                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                                        return FileVisitResult.CONTINUE;
-                                    }
-                                });
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                        allFolders.forEach(p -> {
-                            try {
-                                logger.info("will watch " + p.toString());
-                                WatchKey register = p.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
-                                        StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-                                watched.put(register, p);
-                            } catch (IOException e) {
-                                logger.error("unable to watch path " + p.toString(), e);
-                            }
-                        });
-                    }
-                    logger.info("entering into loop");
-
-                    WatchKey taken;
-                    try {
-                        taken=watchService.poll(1, TimeUnit.SECONDS);
-                    }catch(InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                    if (taken!=null) {
+                        WatchKey taken;
                         try {
-                            logger.debug("new event");
-                            for (WatchEvent<?> event : taken.pollEvents()) {
-                                WatchEvent.Kind<?> kind = event.kind();
+                            taken = watchService.poll(10, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                        if (needToReload.get() == false) {
+                            if (taken != null) {
+                                try {
+                                    logger.debug("new event");
+                                    List<WatchEvent<?>> watchEvents = taken.pollEvents();
+                                    logger.info("nb events in list {}", watchEvents.size());
+                                    for (WatchEvent<?> event : watchEvents) {
+                                        WatchEvent.Kind<?> kind = event.kind();
 
-                                // OVERFLOW
-                                if (kind == StandardWatchEventKinds.OVERFLOW) {
-                                    continue;
-                                }
-                                // The filename is the
-                                // context of the event.
-                                WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                                Path currentDir = watched.get(taken);
-                                Path filename = currentDir.resolve(ev.context());
+                                        // OVERFLOW
+                                        if (kind == StandardWatchEventKinds.OVERFLOW) {
+                                            logger.info("!!!! over flow !!!");
+                                            continue;
+                                        }
+                                        // The filename is the
+                                        // context of the event.
+                                        WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                                        if (ev.context() != null) logger.debug("context of event :{}", ev.context());
+                                        Path currentDir = watched.get(taken);
+                                        if (currentDir == null) {
+                                            logger.error("!!!! unable to find path from watchkey !!!!!!!!!!");
+                                            continue;
+                                        }
+                                        Path filename = currentDir.resolve(ev.context());
 
-                                if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                    logger.info("File " + filename.toString() + " modified");
-                                    if (Files.isDirectory(filename)) continue;
-                                    try {
-                                        EBook ebookModified = EBookFactory.createEBook(filename);
-                                        indexe(ebookModified);
-                                        notifyObservers(new EBookModifiedOrAdded(ebookModified));
-                                    } catch (IOException e) {
-                                        logger.error("unable to read or index ebook " + filename.toString(), e);
+                                        if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                            logger.info("File " + filename.toString() + " modified");
+                                            if (Files.isDirectory(filename)) continue;
+                                            if (Files.exists(filename)) {
+                                                try {
+                                                    EBook ebookModified = EBookFactory.createEBook(filename);
+                                                    indexe(ebookModified);
+                                                    notifyObservers(new EBookModifiedOrAdded(ebookModified));
+                                                } catch (IOException e) {
+                                                    logger.error("unable to read or index ebook " + filename.toString(), e);
+                                                }
+                                            }
+                                        } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                            logger.info("File " + filename.toString() + " deleted");
+                                            if (Files.isDirectory(filename)) {
+                                                removeFromWatchService(watchService, filename);
+                                            } else {
+                                                try {
+                                                    unIndexe(filename);
+                                                    notifyObservers(new EBookDeleted(filename));
+                                                } catch (IOException e) {
+                                                    logger.error("unable to read or index ebook " + filename.toString(), e);
+                                                }
+                                            }
+                                        } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                                            logger.info("File " + filename.toString() + " created");
+                                            if (Files.isDirectory(filename)) {
+                                                addToWatchService(watchService, filename);
+                                            } else {
+                                                if (Files.exists(filename)) {
+                                                    try {
+                                                        EBook ebookModified = EBookFactory.createEBook(filename);
+                                                        indexe(ebookModified);
+                                                        notifyObservers(new EBookModifiedOrAdded(ebookModified));
+                                                    } catch (IOException e) {
+                                                        logger.error("unable to read or index ebook " + filename.toString(), e);
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                                else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                                    logger.info("File " + filename.toString() + " deleted");
-                                    if (Files.isDirectory(filename)) continue;
-                                    try {
-                                        unIndexe(filename);
-                                        notifyObservers(new EBookDeleted(filename));
-                                    } catch (IOException e) {
-                                        logger.error("unable to read or index ebook " + filename.toString(), e);
-                                    }
+                                } finally {
+                                    taken.reset();
                                 }
                             }
-                        } finally {
-                            taken.reset();
                         }
-                    }
+                        synchronized (watchServiceThread) {
+                            watchServiceThread.notify();
+                        }
+
                 }
+
+
+
             } catch (Exception e) {
                 logger.error("unexpected error", e);
             } finally {
@@ -556,7 +616,7 @@ public class EBookDatabase extends Observable {
     private static EBookDatabase _instance = null;
     private Thread               watchServiceThread = null;
     private Map<WatchKey, Path>  watched = new HashMap<>();
-    private boolean              needToReload = true;
+    private AtomicBoolean  needToReload = new AtomicBoolean(true);
 
     private static final String FIELD_PATH = "path";
     private static final String FIELD_ID = "id";

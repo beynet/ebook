@@ -184,14 +184,28 @@ public class LibaryWindow extends DialogNotModal implements Observer,EbookEventW
         
     }
     private void clear() {
-        Platform.runLater(() -> {
-            try {
-                EBookDatabase.getInstance().clearIndexes();
-                tree.display();
-            } catch (IOException e) {
-                
+
+
+        Service<Void> reIndexService = new Service<Void>() {
+
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        EBookDatabase.getInstance().clearIndexes();
+                        Platform.runLater(() -> {
+                            tree.display();
+                        });
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                };
             }
-        });
+        };
+        reIndexService.start();
+
     }
 
     private EbookTree tree;
