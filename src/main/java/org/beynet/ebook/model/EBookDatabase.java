@@ -318,7 +318,7 @@ public class EBookDatabase extends Observable {
                 IndexSearcher searcher = new IndexSearcher(reader);
                 QueryParser parser = new QueryParser(FIELD_TEXT,new MyAnalyser());
                 parser.setAllowLeadingWildcard(true);
-                BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
+                //BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
                 final Query patternQuery ;
                 try {
                     patternQuery = parser.parse("*".concat(query).concat("*"));
@@ -326,12 +326,13 @@ public class EBookDatabase extends Observable {
                     logger.error("error in query",e);
                     throw new IOException("error in query",e);
                 }
-                booleanQueryBuilder.add(patternQuery, BooleanClause.Occur.MUST);
+                //booleanQueryBuilder.add(patternQuery, BooleanClause.Occur.MUST);
 
-                TopScoreDocCollector collector = TopScoreDocCollector.create(1000, 1000);
+                //TopScoreDocCollector collector = TopScoreDocCollector.create(1000, 1000);
 
-                searcher.search(booleanQueryBuilder.build(), collector);
-                ScoreDoc[] hits = collector.topDocs().scoreDocs;
+                //searcher.search(booleanQueryBuilder.build(), collector);
+                ScoreDoc[] hits =searcher.search(patternQuery,Integer.MAX_VALUE).scoreDocs;
+                //ScoreDoc[] hits = collector.topDocs().scoreDocs;
 
                 for (int i = 0; i < hits.length; ++i) {
                     int docId = hits[i].doc;
