@@ -416,6 +416,7 @@ public class EBookDatabase extends Observable {
                 WatchKey key = watchKeyPathEntry.getKey();
                 key.cancel();
                 watched.remove(key);
+                break;
             }
         }
     }
@@ -518,16 +519,29 @@ public class EBookDatabase extends Observable {
                                             }
                                         } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                                             logger.info("File " + filename.toString() + " deleted");
-                                            if (Files.isDirectory(filename)) {
-                                                removeFromWatchService(watchService, filename);
-                                            } else {
-                                                try {
-                                                    unIndexe(filename);
-                                                    notifyObservers(new EBookDeleted(filename));
-                                                } catch (IOException e) {
-                                                    logger.error("unable to read or index ebook " + filename.toString(), e);
+                                            // try to unindex as an ebook
+                                            try {
+                                                unIndexe(filename);
+                                                notifyObservers(new EBookDeleted(filename));
+                                            } catch (IOException e) {
+                                                logger.error("unable to read or index ebook " + filename.toString(), e);
+                                            }
+                                            // if the removed entry is a directory
+                                            List<EBook> eBooks = listInDirectory(filename);
+                                            for (EBook eBook : eBooks) {
+                                                Path ebookPath = eBook.getPath();
+                                                if (ebookPath !=null && ebookPath.getParent().equals(filename)) {
+                                                    logger.debug("unindex ebook "+ebookPath+" with directory "+filename);
+                                                    try {
+                                                        unIndexe(ebookPath);
+                                                        notifyObservers(new EBookDeleted(ebookPath));
+                                                    } catch (IOException e) {
+                                                        logger.error("unable to read or index ebook " + filename.toString(), e);
+                                                    }
                                                 }
                                             }
+                                            removeFromWatchService(watchService, filename);
+
                                         } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                                             logger.info("File " + filename.toString() + " created");
                                             if (Files.isDirectory(filename)) {
