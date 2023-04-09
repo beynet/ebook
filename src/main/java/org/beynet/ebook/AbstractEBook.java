@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
 public abstract class AbstractEBook implements EBook {
 
     public AbstractEBook(Path path) throws IOException {
-        this.path = path;
+        this.path=path.normalize().toAbsolutePath();
+
         if (!Files.exists(this.path)) throw new IOException("File not found "+path.toString());
         EBookUtils.createConfDirectory();
         this.properties = null ;

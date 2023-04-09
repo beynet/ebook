@@ -135,4 +135,39 @@ public class TestDB extends AbstractTests {
             removeIndexDirectories(db, indexPath);
         }
     }
+    @Test
+    public void findInDirectory() throws IOException {
+        Path indexPath = Files.createTempDirectory("ebook_test");
+        System.out.println("index path="+indexPath.toString());
+        EBookDatabase db = null ;
+        Path expectedDirectory = Paths.get("src/test/resources/books/").normalize().toAbsolutePath();
+        try {
+            db = EBookDatabase.getInstance(indexPath);
+            EBook eBook1 = EBookFactory.createEBook(Paths.get("src/test/resources/books/A Fire Upon The Deep.epub"));
+            EBook eBook2 = EBookFactory.createEBook(Paths.get("src/test/resources/books/Juillet 2019.epub"));
+            db.indexe(eBook1);
+            db.indexe(eBook2);
+
+            List<EBook> list = db.listInDirectory(expectedDirectory);
+            assertEquals(2,list.size());
+            boolean eBook1Found=false;
+            boolean eBook2Found=false;
+            for (EBook eBook : list) {
+                if (eBook.getPath().equals(eBook1.getPath())){
+                    eBook1Found = true;
+                }
+                if (eBook.getPath().equals(eBook2.getPath())){
+                    eBook2Found = true;
+                }
+            }
+            assertTrue(eBook1Found);
+            assertTrue(eBook2Found);
+        }
+        finally {
+            removeIndexDirectories(db, indexPath);
+        }
+    }
+
+
+
 }

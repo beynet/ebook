@@ -1,6 +1,7 @@
 package org.beynet.ebook.model;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -36,18 +37,10 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.search.TotalHitCountCollector;
-import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.beynet.ebook.EBook;
 import org.beynet.ebook.EBookFactory;
 import org.beynet.ebook.EBookUtils;
@@ -276,6 +269,39 @@ public class EBookDatabase extends Observable {
     }
 
     /**
+     * list all ebooks found in path
+     * @param startPath
+     * @return
+     * @throws IOException
+     */
+    public List<EBook> listInDirectory(Path directory) throws IOException {
+        if (directory==null) throw new IllegalArgumentException("directory must not be null");
+        List<EBook> result = new ArrayList<>();
+        final IndexReader reader = createReader();
+        try {
+            IndexSearcher searcher = new IndexSearcher(reader);
+            QueryParser parser = new QueryParser(FIELD_PATH,new MyAnalyser());
+            String directoryString = directory.toString().concat("\\");
+            TermRangeQuery query = new TermRangeQuery(FIELD_PATH,new BytesRef(directoryString.getBytes(StandardCharsets.UTF_8)),new BytesRef(directoryString.concat("\\").getBytes(StandardCharsets.UTF_8)),false,false);
+
+            //TotalHitCountCollector collector = new TotalHitCountCollector();
+            //searcher.search(query, collector);
+            //ScoreDoc[] docs = searcher.search(query, Math.max(1, collector.getTotalHits())).scoreDocs;
+            ScoreDoc[] docs = searcher.search(query, Integer.MAX_VALUE).scoreDocs;
+
+            for (int i = 0; i < docs.length; ++i) {
+                int docId = docs[i].doc;
+                Document d = searcher.doc(docId);
+                if (d.get(FIELD_ROOT_PATH).equals("true")) continue;
+                result.add(ebookFromDocument(d));
+            }
+            return result;
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
      * list all indexed ebooks matching query
      * 
      * @param query
@@ -293,8 +319,6 @@ public class EBookDatabase extends Observable {
                 QueryParser parser = new QueryParser(FIELD_TEXT,new MyAnalyser());
                 parser.setAllowLeadingWildcard(true);
                 BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
-
-                /*Query patternQuery = new WildcardQuery(new Term(FIELD_TEXT, "*" + query + "*"));*/
                 final Query patternQuery ;
                 try {
                     patternQuery = parser.parse("*".concat(query).concat("*"));
@@ -397,19 +421,6 @@ public class EBookDatabase extends Observable {
     }
 
     public void startWatchService() {
-        /*try {
-            List<Path> toIndex = listIndexedFolder();
-            clearIndexes();
-            toIndex.forEach(p -> {
-                try {
-                    indexeDirectory(p);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch(IOException e) {
-            logger.error("error when reconstructing indexes");
-        }*/
         Runnable r = () -> {
 
             try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
